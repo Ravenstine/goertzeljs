@@ -137,6 +137,9 @@ conclusion
 ==========
 I hope this project will be useful for anyone who wants to understand the Goertzel algorithm or basic signal processing with the HTML5 Audio API.  
 
+Special thanks to Texas Instruments for the best explanation of the Goertzel algorithm I could find.
+http://www.ti.com/lit/an/spra066/spra066.pdf
+
 author
 ==========
 * Ben Titcomb [@Ravenstine](https://github.com/Ravenstine)
