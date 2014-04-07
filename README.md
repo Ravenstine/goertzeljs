@@ -15,6 +15,8 @@ The demo is a DTMF detector that uses a microphone input.  To test the demo, you
 
 Simply play some DTMF sounds and the detected characters will appear on the page.
 
+To run the demo yourself, you must host the HTML and JS files on a server.  Your browser will [probably] not allow you to use the audio API when opening the HTML file directly.
+
 limitations
 ==========
 This library currently doesn't have a good way of filtering out background sound.  The only way right now is to increase the detection threshold.  It would be highly appreciated if someone were to add a window function.
