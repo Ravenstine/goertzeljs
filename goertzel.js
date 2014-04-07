@@ -1,11 +1,13 @@
-function Goertzel(frequencyData,samplerate,threshold){
+function Goertzel(frequencyTable,samplerate,threshold){
   var self = this
   self.threshold = threshold
   self.samplerate = samplerate
-  self.frequencyTable = frequencyData.frequencyTable
-  self.lowFrequencies = frequencyData.lowFrequencies
-  self.highFrequencies = frequencyData.highFrequencies
-  self.allFrequencies = frequencyData.allFrequencies
+  self.frequencyTable = frequencyTable
+  self.lowFrequencies = []
+  for(var key in self.frequencyTable) self.lowFrequencies.push(parseInt(key))
+  self.highFrequencies = []
+  for (var key in self.frequencyTable[self.lowFrequencies[0]]) self.highFrequencies.push(parseInt(key))
+  self.allFrequencies = self.lowFrequencies.concat(self.highFrequencies)
   self.firstPrevious = {}
   self.secondPrevious = {}
   self.totalPower = {}

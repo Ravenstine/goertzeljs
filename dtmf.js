@@ -9,21 +9,12 @@ function DTMF(samplerate,decimation,threshold){
     852: {1209: "7", 1336: "8", 1477: "9", 1633: "C"},
     941: {1209: "*", 1336: "0", 1477: "#", 1633: "D"}
   }
-  var lowFrequencies = []
-  for(var key in frequencyTable) lowFrequencies.push(parseInt(key))
-  var highFrequencies = []
-  for (var key in frequencyTable[lowFrequencies[0]]) highFrequencies.push(parseInt(key))
-  var allFrequencies = lowFrequencies.concat(highFrequencies)
-  var frequencyData = {
-    frequencyTable: frequencyTable,
-    lowFrequencies: lowFrequencies,
-    highFrequencies: highFrequencies,
-    allFrequencies: allFrequencies
-  }
-
+  var allFrequencies = []
+  for(var key in frequencyTable) allFrequencies.push(parseInt(key))
+  for (var key in frequencyTable[allFrequencies[0]]) allFrequencies.push(parseInt(key))
   self.repeatCounter = 0
   self.firstPreviousValue = ""
-  self.goertzel = new Goertzel(frequencyData,samplerate,threshold)
+  self.goertzel = new Goertzel(frequencyTable,samplerate,threshold)
 
   self.processBin = function(bin){
     var value = ""
