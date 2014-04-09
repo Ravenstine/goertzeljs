@@ -34,7 +34,7 @@ how to use
 ==========
 To create a Goertzel instance:
 ```
-var goertzel = new Goertzel(frequencyTable, samplerate, threshold)
+var goertzel = new Goertzel(frequencyTable, samplerate, threshold, peakFilterSensitivity)
 ```
 
 frequencyTable is an object containing information about what frequencies are to be detected and what combinations of those frequencies need to return(letters or true/false).  
@@ -52,6 +52,8 @@ var frequencyTable = {
 The samplerate should be the sample rate of whatever sample bins are being given to the goertzel object.  Most of the time this is either 44100 or 48000 hz.  This can be set as high or as low as necessary, though higher samplerates will create more overhead.  Consider downsampling your audio for faster processing time.  See dtmf.js on how samples can be downsampled.
 
 The threshold is used to filter out noise mistaken for found frequency combinations when the DTMF tones are quiet.  I've found that a threshold of 0.0002 works well for DTMF, but your results may vary.
+
+The peakFilterSensitivity determines how much the peak filter discriminates against multiple frequency peaks and weak peaks.  If the second-highest energy to the peak energy is greater than 1/x of the highest frequency peak, the sample is discounted.  peakFilterSensitivity determines x.  This value is unlimited, but I found that at least 20 works well at filtering out noise when detecting DMTF.
 
 ```javascript
 var goertzel = new Goertzel(frequencyData, 8000, 0.0002)
