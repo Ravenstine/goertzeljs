@@ -17,16 +17,18 @@ Simply play some DTMF sounds and the detected characters will appear on the page
 
 limitations
 ==========
-This library currently doesn't have a good way of filtering out background sound.  The only way right now is to increase the detection threshold(minimum energy needed to be considered a valid signal).
+This library currently doesn't have a good way of filtering out background sound.  
+
+Currently, noise is filtered out through both energy detection threshold(minimum energy needed to be considered a valid signal) and multiple peak detection, the latter of which is more effective.
 
 Features currently lacking:
 
-* Window function
-* Normal/reverse twist
 * Sliding Goertzel
 * Signal-to-noise test
 
-Since Goertzel.js doesn't do much to get rid of noise, it will sometimes "mistake" a sound pattern for a DTMF sound.  It may also have a difficult time detecting DTMF tones if there is too much noise.  This means that it should not be used for serious use unless modified.
+Since Goertzel.js doesn't do much to get rid of noise, it will sometimes "mistake" a sound pattern for a DTMF sound.  It may also have a difficult time detecting DTMF tones if there is too much noise.
+
+At this time, frequencies need to occur for at least 0.3 seconds long to be detected consistently.
 
 how to use
 ==========
@@ -137,6 +139,10 @@ notes
 Since this is a new project, the documentation here may become outdated quickly.
 
 Testing for the presence of a single frequency hasn't been implemented yet, though it would be very easy to(just eliminate one of the conditions needed to decode).
+
+contribution
+==========
+To contribute, fork the project and make a pull-request!
 
 conclusion
 ==========

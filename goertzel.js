@@ -35,8 +35,33 @@ function Goertzel(frequencyTable,samplerate,threshold){
     }
   }
 
+
+  self.peakFilter = function(energies){
+    var peak = 0
+    var secondPeak = 0
+    for (var i=0; i<energies.length; i++){
+      if(energies[i] > peak){
+        peak = energies[i]
+      }
+    }
+
+    for (var i=0; i<energies.length; i++){
+      if(energies[i] > secondPeak && energies[i] < peak){
+        secondPeak = energies[i]
+      }
+    }
+
+    if (secondPeak >= peak/10) {
+      return true
+    } else {
+      return false
+    }
+  }
+
   self.energyProfileToCharacter = function(register){
     var energies = register.energies
+
+    // Find high frequency.
     var highFrequency = 0.0
     var highFrequencyEngergy = 0.0
 
@@ -46,8 +71,9 @@ function Goertzel(frequencyTable,samplerate,threshold){
         highFrequencyEngergy = energies[f]
         highFrequency = f
       }
-    }
+    }    
 
+    // Find low frequency.
     var lowFrequency = 0.0
     var lowFrequencyEnergy = 0.0
 
@@ -58,9 +84,29 @@ function Goertzel(frequencyTable,samplerate,threshold){
         lowFrequency = f
       }
     }
+
+    // Run peak test to throw out samples with too many energy spectrum peaks.
+    var highEnergies = []
+    for (var i=0; i<self.highFrequencies.length; i++){
+      var f = self.highFrequencies[i]
+      highEnergies.push(energies[f])
+    }    
+    var lowEnergies = []
+    for (var i=0; i<self.lowFrequencies.length; i++){
+      var freq = self.lowFrequencies[i]
+      lowEnergies.push(energies[freq])
+    }    
+    var badPeaks = false
+    if (self.peakFilter(highEnergies) == true){
+      badPeaks = true
+    } else if (self.peakFilter(highEnergies) == true){
+      badPeaks = true
+    }
+
+    // Set up the register for garbage collection.
     register = null
     delete register
-    if (self.frequencyTable[lowFrequency] != undefined){
+    if (self.frequencyTable[lowFrequency] != undefined && badPeaks == false){
       return self.frequencyTable[lowFrequency][highFrequency] || null
     }
 

@@ -45,8 +45,7 @@ function DTMF(samplerate,downsampleRate,threshold){
       if (value == self.firstPreviousValue && value != undefined ){
         self.repeatCounter+=1
         if (self.repeatCounter == 4 && typeof this.onDecode === "function"){
-          // outputElement.innerHTML = outputElement.innerHTML + value
-          setTimeout(this.onDecode(value), 1);
+          setTimeout(this.onDecode(value), 0);
         }
       } else {
         self.repeatCounter = 0
