@@ -1,8 +1,9 @@
-function Goertzel(frequencyTable,samplerate,threshold){
+function Goertzel(frequencyTable,samplerate,threshold,peakFilterSensitivity){
   var self = this
   self.threshold = threshold
   self.samplerate = samplerate
   self.frequencyTable = frequencyTable
+  self.peakFilterSensitivity = peakFilterSensitivity
   self.lowFrequencies = []
   for(var key in self.frequencyTable) self.lowFrequencies.push(parseInt(key))
   self.highFrequencies = []
@@ -51,7 +52,7 @@ function Goertzel(frequencyTable,samplerate,threshold){
       }
     }
 
-    if (secondPeak >= peak/20) {
+    if (secondPeak >= peak/self.peakFilterSensitivity) {
       return true
     } else {
       return false

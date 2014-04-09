@@ -14,7 +14,7 @@ function DTMF(samplerate,downsampleRate,threshold){
   for (var key in frequencyTable[allFrequencies[0]]) allFrequencies.push(parseInt(key))
   self.repeatCounter = 0
   self.firstPreviousValue = ""
-  self.goertzel = new Goertzel(frequencyTable,samplerate,threshold)
+  self.goertzel = new Goertzel(frequencyTable,samplerate,threshold,20)
 
   self.windowFunction = function(sample,sampleIndex,binSize){
     // sample = sample * (0.54 - 0.46*Math.cos(2 * 3.14 * sampleIndex/binSize))
