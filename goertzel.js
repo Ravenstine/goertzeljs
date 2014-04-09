@@ -51,7 +51,7 @@ function Goertzel(frequencyTable,samplerate,threshold){
       }
     }
 
-    if (secondPeak >= peak/10) {
+    if (secondPeak >= peak/20) {
       return true
     } else {
       return false
