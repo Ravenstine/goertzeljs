@@ -3,7 +3,7 @@ goertzel.js
 
 A pure JavaScript implementation of the Goertzel algorithm.  
 
-The algorithm is used for detecting if specific frequencies are present in a sound(similar to a Discrete Fourier Transform).  It has been most commonly used to detect DTMF(aka Touch-tone) from phone keypads, but it can also be used for a variety of other projects(instrument tuning, decoding FSK, etc).
+The algorithm is used for detecting if specific frequencies are present in a sound(similar to a Discrete Fourier Transform).  It has been most commonly used to detect DTMF(aka Touch-tone) from phone keypads, but it can also be used for a variety of other projects(instrument tuning, decoding FSK, detecting ultrasound, etc).
 
 This particular project is all vanilla JavaScript and uses no outside libraries.  Practical use, however, may require a browser that supports AudioContext and getUserMedia.  Because of this, the demo will only work on recent versions of Chrome and Firefox since it is processing in real-time.
 
@@ -17,7 +17,14 @@ Simply play some DTMF sounds and the detected characters will appear on the page
 
 limitations
 ==========
-This library currently doesn't have a good way of filtering out background sound.  The only way right now is to increase the detection threshold.  It would be highly appreciated if someone were to add a window function.
+This library currently doesn't have a good way of filtering out background sound.  The only way right now is to increase the detection threshold(minimum energy needed to be considered a valid signal).
+
+Features currently lacking:
+
+* Window function
+* Normal/reverse twist
+* Sliding Goertzel
+* Signal-to-noise test
 
 Since Goertzel.js doesn't do much to get rid of noise, it will sometimes "mistake" a sound pattern for a DTMF sound.  It may also have a difficult time detecting DTMF tones if there is too much noise.  This means that it should not be used for serious use unless modified.
 
@@ -91,11 +98,11 @@ dtmf.js
 Here's a quick how-to on using dtmf.js with goertzel.js.
 
 ```
-var dtmf = new DTMF(samplerate,decimation,threshold)
+var dtmf = new DTMF(samplerate,downsampleRate,threshold)
 ```
 
 * The sample rate is the sample rate of the audio bin being given to the dtmf object.
-* The decimatio value decides how much the bins are downsampled.  I've found so far that a value of 5 works best for this.
+* The downsampleRate value decides how much the bins are downsampled(by skipping every Nth sample).  I've found so far that a value of 5 works best for this.
 * The threshold value gets passed to the goertzel object that gets created by the dtmf object.  This is the noise threshold value.  I usually set this at 0.0002, but this value may need to be adjusted(or not used at all by setting it to zero).
 
 First create the object:

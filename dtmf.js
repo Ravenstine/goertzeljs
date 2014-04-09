@@ -1,7 +1,7 @@
-function DTMF(samplerate,decimation,threshold){
+function DTMF(samplerate,downsampleRate,threshold){
   var self = this
-  var samplerate = samplerate / decimation
-  var decimation = decimation || 5
+  var samplerate = samplerate / downsampleRate
+  var downsampleRate = downsampleRate || 5
   var threshold = threshold || 0.0002
   var frequencyTable = {
     697: {1209: "1", 1336: "2", 1477: "3", 1633: "A"}, 
@@ -16,11 +16,19 @@ function DTMF(samplerate,decimation,threshold){
   self.firstPreviousValue = ""
   self.goertzel = new Goertzel(frequencyTable,samplerate,threshold)
 
+  self.windowFunction = function(sample,sampleIndex,binSize){
+    // sample = sample * (0.54 - 0.46*Math.cos(2 * 3.14 * sampleIndex/binSize))
+    // return sample 
+    return sample * (0.426591 - 0.496561 * Math.cos(2 * Math.PI * sampleIndex/binSize) + 0.076848 * Math.cos(4 * Math.PI * sampleIndex/binSize))
+  }
+
+
   self.processBin = function(bin){
     var value = ""
     var register = self.generateFrequencyRegister()
-    // Downsample by decimation(choosing every Nth sample).
-    for ( var i=0; i< bin.length; i+=decimation ) {
+
+    // Downsample by choosing every Nth sample.
+    for ( var i=0; i< bin.length; i+=downsampleRate ) {
       floatSample = bin[i] * 32768 ;
       if ( floatSample > 32767 ) { 
         floatSample = 32767 
@@ -29,8 +37,8 @@ function DTMF(samplerate,decimation,threshold){
       }
 
       intSample = Math.round(floatSample)
-      register.sample = intSample
-
+      windowedSample = self.windowFunction(intSample,i,(bin.length/downsampleRate))
+      register.sample = windowedSample
       register = self.goertzel.getEnergyFromSample(register)
       value = self.goertzel.energyProfileToCharacter(register)
     }

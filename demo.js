@@ -18,7 +18,7 @@ function success(e){
     var bufferSize = 2048
     recorder = context.createJavaScriptNode(bufferSize, 1, 1)
     var outputElement = document.querySelector('#output')
-    var dtmf = new DTMF(context.sampleRate,5,0)
+    var dtmf = new DTMF(context.sampleRate,10,0)
     dtmf.onDecode = function(value){
       outputElement.innerHTML = outputElement.innerHTML + value
     }

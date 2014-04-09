@@ -17,7 +17,7 @@ function Goertzel(frequencyTable,samplerate,threshold){
   for ( var i=0; i< self.allFrequencies.length; i++ ){
     var frequency = self.allFrequencies[i]
     normalizedFrequency = frequency / self.samplerate
-    self.coefficient[frequency] = 2.0*Math.cos(2.0 * 3.14 * normalizedFrequency)
+    self.coefficient[frequency] = 2.0*Math.cos(2.0 * Math.PI * normalizedFrequency)
   }
 
   self.refresh = function(){
