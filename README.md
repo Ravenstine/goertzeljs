@@ -5,7 +5,7 @@ A pure JavaScript implementation of the Goertzel algorithm.
 
 The algorithm is used for detecting if specific frequencies are present in a sound(similar to a Discrete Fourier Transform).  It has been most commonly used to detect DTMF(aka Touch-tone) from phone keypads, but it can also be used for a variety of other projects(instrument tuning, decoding FSK, detecting ultrasound, etc).
 
-This particular project is all vanilla JavaScript and uses no outside libraries.  Practical use, however, may require a browser that supports WebRTC(AudioContext and getUserMedia).  Because of this, the demo will only work on recent versions of Chrome and Firefox since it is processing audio in real-time.
+This particular project is all vanilla JavaScript and uses no outside libraries.  Practical use, however, may require a browser that supports AudioContext and getUserMedia.  Because of this, the demo will only work on recent versions of Chrome and Firefox since it is processing in real-time.
 
 demo
 ==========
@@ -14,8 +14,6 @@ demo
 The demo is a DTMF detector that uses a microphone input.  To test the demo, you must have a microphone set up on your computer(and configured in your browser settings) and a source to play DTMF(Audacity or an actual phone).
 
 Simply play some DTMF sounds and the detected characters will appear on the page.
-
-To run the demo yourself, you must host the HTML and JS files on a server.  Your browser will [probably] not allow you to use the audio API when opening the HTML file directly.
 
 limitations
 ==========
@@ -148,10 +146,7 @@ To contribute, fork the project and make a pull-request!
 
 conclusion
 ==========
-I hope this project will be useful for anyone who wants to understand the Goertzel algorithm or basic signal processing with the WebRTC API.  
-
-Special thanks to Texas Instruments for the best explanation of the Goertzel algorithm I could find.
-http://www.ti.com/lit/an/spra066/spra066.pdf
+I hope this project will be useful for anyone who wants to understand the Goertzel algorithm or basic signal processing with the HTML5 Audio API.  
 
 author
 ==========
