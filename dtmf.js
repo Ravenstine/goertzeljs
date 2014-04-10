@@ -1,84 +1,103 @@
-function DTMF(samplerate,downsampleRate,threshold){
+function DTMF(samplerate,downsampleRate,peakFilterSensitivity,threshold){
   var self = this
-  var samplerate = samplerate / downsampleRate
-  var downsampleRate = downsampleRate || 5
-  var threshold = threshold || 0.0002
-  var frequencyTable = {
+  self.peakFilterSensitivity = peakFilterSensitivity
+  self.downsampleRate = downsampleRate || 5
+  self.samplerate = samplerate / self.downsampleRate
+  self.frequencyTable = {
     697: {1209: "1", 1336: "2", 1477: "3", 1633: "A"}, 
     770: {1209: "4", 1336: "5", 1477: "6", 1633: "B"},
     852: {1209: "7", 1336: "8", 1477: "9", 1633: "C"},
     941: {1209: "*", 1336: "0", 1477: "#", 1633: "D"}
   }
-  var allFrequencies = []
-  for(var key in frequencyTable) allFrequencies.push(parseInt(key))
-  for (var key in frequencyTable[allFrequencies[0]]) allFrequencies.push(parseInt(key))
+  self.lowFrequencies = []
+  for(var key in self.frequencyTable) self.lowFrequencies.push(parseInt(key))
+  self.highFrequencies = []
+  for (var key in self.frequencyTable[self.lowFrequencies[0]]) self.highFrequencies.push(parseInt(key))
+  self.allFrequencies = self.lowFrequencies.concat(self.highFrequencies)  
+  self.threshold = threshold || 0.0002
   self.repeatCounter = 0
   self.firstPreviousValue = ""
-  self.goertzel = new Goertzel(frequencyTable,samplerate,threshold,20)
+  self.goertzel = new Goertzel(self.allFrequencies,self.samplerate,self.threshold)
 
-  self.windowFunction = function(sample,sampleIndex,binSize){
-    // sample = sample * (0.54 - 0.46*Math.cos(2 * 3.14 * sampleIndex/binSize))
-    // return sample 
-    return sample * (0.426591 - 0.496561 * Math.cos(2 * Math.PI * sampleIndex/binSize) + 0.076848 * Math.cos(4 * Math.PI * sampleIndex/binSize))
+  self.energyProfileToCharacter = function(register){
+    var energies = register.energies
+
+    // Find high frequency.
+    var highFrequency = 0.0
+    var highFrequencyEngergy = 0.0
+
+    for (var i=0; i<self.highFrequencies.length; i++){
+      var f = self.highFrequencies[i]
+      if (energies[f] > highFrequencyEngergy && energies[f] > self.threshold){
+        highFrequencyEngergy = energies[f]
+        highFrequency = f
+      }
+    }    
+
+    // Find low frequency.
+    var lowFrequency = 0.0
+    var lowFrequencyEnergy = 0.0
+
+    for (var i=0; i<self.lowFrequencies.length; i++){
+      var f = self.lowFrequencies[i]
+      if (energies[f] > lowFrequencyEnergy && energies[f] > self.threshold){
+        lowFrequencyEnergy = energies[f]
+        lowFrequency = f
+      }
+    }
+
+    // Set up the register for garbage collection.
+    register = null
+    delete register
+    if (self.frequencyTable[lowFrequency] != undefined){
+      return self.frequencyTable[lowFrequency][highFrequency] || null
+    }
+
   }
-
 
   self.processBin = function(bin){
     var value = ""
-    var register = self.generateFrequencyRegister()
+    var intSample
+    var register
+    var windowedSample
 
     // Downsample by choosing every Nth sample.
-    for ( var i=0; i< bin.length; i+=downsampleRate ) {
-      floatSample = bin[i] * 32768 ;
-      if ( floatSample > 32767 ) { 
-        floatSample = 32767 
-      } else if (floatSample < -32786) {
-        floatSample = -32768;
-      }
+    for ( var i=0; i< bin.length; i+=self.downsampleRate ) {
+        intSample = self.goertzel.floatToIntSample(bin[i])
+        windowedSample = self.goertzel.windowFunction(intSample,i,(bin.length/self.downsampleRate))
+        register = self.goertzel.getEnergyFromSample(windowedSample)
+        value = self.energyProfileToCharacter(register)
+    } // END DOWNSAMPLE 
 
-      intSample = Math.round(floatSample)
-      windowedSample = self.windowFunction(intSample,i,(bin.length/downsampleRate))
-      register.sample = windowedSample
-      register = self.goertzel.getEnergyFromSample(register)
-      value = self.goertzel.energyProfileToCharacter(register)
-    }
-      if (value == self.firstPreviousValue && value != undefined ){
-        self.repeatCounter+=1
-        if (self.repeatCounter == 4 && typeof this.onDecode === "function"){
-          setTimeout(this.onDecode(value), 0);
+    // Run peak test to throw out samples with too many energy spectrum peaks or where the difference between energies is not great enough.
+    var highEnergies = []
+    for (var i=0; i<self.highFrequencies.length; i++){
+      var f = self.highFrequencies[i]
+      highEnergies.push(register.energies[f])
+    }    
+    var lowEnergies = []
+    for (var i=0; i<self.lowFrequencies.length; i++){
+      var freq = self.lowFrequencies[i]
+      lowEnergies.push(register.energies[freq])
+    }    
+    var badPeaks = false
+    if (self.goertzel.peakFilter(highEnergies,self.peakFilterSensitivity) == true){
+      badPeaks = true
+    } else if (self.goertzel.peakFilter(lowEnergies,self.peakFilterSensitivity) == true){
+      badPeaks = true
+    } // END PEAK TEST
+
+    if (badPeaks == false){
+        if (value == self.firstPreviousValue && value != undefined ){
+          self.repeatCounter+=1
+          if (self.repeatCounter == 4 && typeof this.onDecode === "function"){
+            setTimeout(this.onDecode(value), 0);
+          }
+        } else {
+          self.repeatCounter = 0
+          self.firstPreviousValue = value
         }
-      } else {
-        self.repeatCounter = 0
-        self.firstPreviousValue = value
-      }
-
-  }
-
-  self.generateFrequencyRegister = function(){
-    var register = {
-      firstPrevious: {}, 
-      secondPrevious: {}, 
-      totalPower: {}, 
-      filterLength: {}, 
-      sample: 0, 
-      energies: {},
-      rememberSample: function(sample,frequency){
-        this.secondPrevious[frequency] = this.firstPrevious[frequency]
-        this.firstPrevious[frequency] = sample
-      }
     }
-    for ( var i=0; i< allFrequencies.length; i++ ){
-      var frequency = allFrequencies[i]
-      register.firstPrevious[frequency] = 0.0
-      register.secondPrevious[frequency] = 0.0
-      register.totalPower[frequency] = 0.0
-      register.filterLength[frequency] = 0.0
-      register.energies[frequency] = 0.0
-    }
-    return register
-  }
-
-  self.refresh = function(){
     self.goertzel.refresh()
   }
 

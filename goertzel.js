@@ -1,14 +1,8 @@
-function Goertzel(frequencyTable,samplerate,threshold,peakFilterSensitivity){
+function Goertzel(allFrequencies,samplerate,threshold){
   var self = this
   self.threshold = threshold
   self.samplerate = samplerate
-  self.frequencyTable = frequencyTable
-  self.peakFilterSensitivity = peakFilterSensitivity
-  self.lowFrequencies = []
-  for(var key in self.frequencyTable) self.lowFrequencies.push(parseInt(key))
-  self.highFrequencies = []
-  for (var key in self.frequencyTable[self.lowFrequencies[0]]) self.highFrequencies.push(parseInt(key))
-  self.allFrequencies = self.lowFrequencies.concat(self.highFrequencies)
+  self.allFrequencies = allFrequencies
   self.firstPrevious = {}
   self.secondPrevious = {}
   self.totalPower = {}
@@ -21,11 +15,57 @@ function Goertzel(frequencyTable,samplerate,threshold,peakFilterSensitivity){
     self.coefficient[frequency] = 2.0*Math.cos(2.0 * Math.PI * normalizedFrequency)
   }
 
+  ////
+  // Main Goertzel algorithm methods.
+  ////
+
+  self.getEnergyFromSample = function(sample){
+    self.register.sample = sample
+    for ( var i=0; i< self.allFrequencies.length; i++ ){
+        var frequency = self.allFrequencies[i]
+        sine = self.register.sample + (self.coefficient[frequency] * self.register.firstPrevious[frequency]) - self.register.secondPrevious[frequency]
+        self.register.rememberSample(sine,frequency)
+        self.register.filterLength[frequency]+=1
+        power = (self.register.secondPrevious[frequency]*self.register.secondPrevious[frequency]) + (self.register.firstPrevious[frequency]*self.register.firstPrevious[frequency]) - (self.coefficient[frequency]*self.register.firstPrevious[frequency]*self.register.secondPrevious[frequency])
+        self.register.totalPower[frequency]+=self.register.sample*self.register.sample
+        if(self.register.totalPower[frequency] == 0){
+            self.register.totalPower[frequency] = 1
+        }
+        self.register.energies[frequency] = power / self.register.totalPower[frequency] / self.register.filterLength[frequency]
+    }
+    return self.register
+  }
+
+  self.generateFrequencyRegister = function(){
+    var newRegister = {
+      firstPrevious: {}, 
+      secondPrevious: {}, 
+      totalPower: {}, 
+      filterLength: {}, 
+      sample: 0, 
+      energies: {},
+      rememberSample: function(sample,frequency){
+        this.secondPrevious[frequency] = this.firstPrevious[frequency]
+        this.firstPrevious[frequency] = sample
+      }
+    }
+    for ( var i=0; i< self.allFrequencies.length; i++ ){
+      var frequency = self.allFrequencies[i]
+      newRegister.firstPrevious[frequency] = 0.0
+      newRegister.secondPrevious[frequency] = 0.0
+      newRegister.totalPower[frequency] = 0.0
+      newRegister.filterLength[frequency] = 0.0
+      newRegister.energies[frequency] = 0.0
+    }
+    return newRegister
+  }
+
   self.refresh = function(){
     self.firstPrevious = {}
     self.secondPrevious = {}
     self.totalPower = {}
     self.filterLength = {}
+    self.register = self.generateFrequencyRegister()
 
     for ( var i=0; i< self.allFrequencies.length; i++ ){
       var frequency = self.allFrequencies[i]
@@ -37,9 +77,30 @@ function Goertzel(frequencyTable,samplerate,threshold,peakFilterSensitivity){
   }
 
 
-  self.peakFilter = function(energies){
+  ////
+  // Extra utilities 
+  ////
+
+  self.floatToIntSample = function(floatSample){
+    var intSample = floatSample * 32768
+    if ( intSample > 32767 ) { 
+      return 32767 
+    } else if (intSample < -32786) {
+      return -32768;
+    }
+    return Math.round(intSample)
+  }
+
+
+  self.windowFunction = function(sample,sampleIndex,binSize){
+    // Exact Blackman
+    return sample * (0.426591 - 0.496561 * Math.cos(2 * Math.PI * sampleIndex/binSize) + 0.076848 * Math.cos(4 * Math.PI * sampleIndex/binSize))
+  }
+
+  self.peakFilter = function(energies,sensitivity){
     var peak = 0
     var secondPeak = 0
+
     for (var i=0; i<energies.length; i++){
       if(energies[i] > peak){
         peak = energies[i]
@@ -52,82 +113,13 @@ function Goertzel(frequencyTable,samplerate,threshold,peakFilterSensitivity){
       }
     }
 
-    if (secondPeak >= peak/self.peakFilterSensitivity) {
+    if (secondPeak >= peak/sensitivity) {
       return true
     } else {
       return false
     }
   }
 
-  self.energyProfileToCharacter = function(register){
-    var energies = register.energies
-
-    // Find high frequency.
-    var highFrequency = 0.0
-    var highFrequencyEngergy = 0.0
-
-    for (var i=0; i<self.highFrequencies.length; i++){
-      var f = self.highFrequencies[i]
-      if (energies[f] > highFrequencyEngergy && energies[f] > self.threshold){
-        highFrequencyEngergy = energies[f]
-        highFrequency = f
-      }
-    }    
-
-    // Find low frequency.
-    var lowFrequency = 0.0
-    var lowFrequencyEnergy = 0.0
-
-    for (var i=0; i<self.lowFrequencies.length; i++){
-      var f = self.lowFrequencies[i]
-      if (energies[f] > lowFrequencyEnergy && energies[f] > self.threshold){
-        lowFrequencyEnergy = energies[f]
-        lowFrequency = f
-      }
-    }
-
-    // Run peak test to throw out samples with too many energy spectrum peaks.
-    var highEnergies = []
-    for (var i=0; i<self.highFrequencies.length; i++){
-      var f = self.highFrequencies[i]
-      highEnergies.push(energies[f])
-    }    
-    var lowEnergies = []
-    for (var i=0; i<self.lowFrequencies.length; i++){
-      var freq = self.lowFrequencies[i]
-      lowEnergies.push(energies[freq])
-    }    
-    var badPeaks = false
-    if (self.peakFilter(highEnergies) == true){
-      badPeaks = true
-    } else if (self.peakFilter(highEnergies) == true){
-      badPeaks = true
-    }
-
-    // Set up the register for garbage collection.
-    register = null
-    delete register
-    if (self.frequencyTable[lowFrequency] != undefined && badPeaks == false){
-      return self.frequencyTable[lowFrequency][highFrequency] || null
-    }
-
-  }
-
-  self.getEnergyFromSample = function(register){
-    for ( var i=0; i< self.allFrequencies.length; i++ ){
-        var frequency = self.allFrequencies[i]
-        sine = register.sample + (self.coefficient[frequency] * register.firstPrevious[frequency]) - register.secondPrevious[frequency]
-        register.rememberSample(sine,frequency)
-        register.filterLength[frequency]+=1
-        power = (register.secondPrevious[frequency]*register.secondPrevious[frequency]) + (register.firstPrevious[frequency]*register.firstPrevious[frequency]) - (self.coefficient[frequency]*register.firstPrevious[frequency]*register.secondPrevious[frequency])
-        register.totalPower[frequency]+=register.sample*register.sample
-        if(register.totalPower[frequency] == 0){
-            register.totalPower[frequency] = 1
-        }
-        register.energies[frequency] = power / register.totalPower[frequency] / register.filterLength[frequency]
-    }
-    return register
-  }
 
   self.refresh()
 

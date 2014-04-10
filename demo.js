@@ -18,14 +18,13 @@ function success(e){
     var bufferSize = 2048
     recorder = context.createJavaScriptNode(bufferSize, 1, 1)
     var outputElement = document.querySelector('#output')
-    var dtmf = new DTMF(context.sampleRate,10,0)
+    var dtmf = new DTMF(context.sampleRate,10,20,0)
     dtmf.onDecode = function(value){
       outputElement.innerHTML = outputElement.innerHTML + value
     }
     recorder.onaudioprocess = function(e){
-        var bin = e.inputBuffer.getChannelData (0)
+        var bin = e.inputBuffer.getChannelData(0)
         dtmf.processBin(bin)
-        dtmf.refresh()
     }
 
     volume.connect (recorder)
