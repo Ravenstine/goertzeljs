@@ -17,7 +17,7 @@ Simply play some DTMF sounds and the detected characters will appear on the page
 
 limitations
 ==========
-This library currently doesn't have a good way of filtering out background sound.  
+This library isn't 100% perfect at filtering out background sound.  
 
 Currently, noise is filtered out through both energy detection threshold(minimum energy needed to be considered a valid signal) and multiple peak detection, the latter of which is more effective.
 
@@ -26,7 +26,7 @@ Features currently lacking:
 * Sliding Goertzel(not sure how necessary this is considering how well the current version works)
 * Twist/reverse-twist detection.
 
-Since Goertzel.js doesn't do much to get rid of noise, it may occasionally "mistake" a sound pattern for a DTMF tone.  It may also have a difficult time detecting DTMF tones if there is too much noise.
+Since Goertzel.js is only about 95% effective at getting rid of noise, it may occasionally "mistake" a sound pattern for a DTMF tone.  It may also have a difficult time detecting DTMF tones if there is too much noise.
 
 At this time, frequencies need to occur for at least 0.3 seconds long to be detected consistently.
 
@@ -139,13 +139,17 @@ goertzel.windowFunction(sample,sampleIndex,binSize)
 
 Practical use of DTMF requires significant noise reduction.  Because other methods I tried did not seem to work very well, I came up with my own noise filtration.  It works by finding the peak energy in a given spectrum of frequencies, then finding the second highest energy and throwing out the sample if secondHighestEnergy >= peakEnergy/peakFilterSensitivity.  
 
-peakFilter will return true if the amount of surrounding energy is too great, the peak isn't high enough, or there are multiple peaks.  Samples that pass return false.  I've found this to be a very effective means of reducing errors, and a peakFilterSensitivity value of 20 seems to work well.
+```
+goertzel.peakFilter(energies,sensitivity)
+```
+
+Energies needs to be a simple array of energies, and sensitivity needs to be an integer from 1 to infinity.
+
+peakFilter will return true if the amount of surrounding energy is too great, the peak isn't high enough, or there are multiple peaks.  Samples that pass return false.  I've found this to be a very effective means of reducing errors, and a peakFilterSensitivity value of 20 seems to work well.  The more specific you want your frequency detection to be, the higher the sensitivity you may need.
 
 notes
 ==========
 Since this is a new project, the documentation here may become outdated quickly.
-
-Testing for the presence of a single frequency hasn't been implemented yet, though it would be very easy to(just eliminate one of the conditions needed to decode).
 
 contribution
 ==========
@@ -154,6 +158,10 @@ To contribute, fork the project and make a pull-request!
 conclusion
 ==========
 I hope this project will be useful for anyone who wants to understand the Goertzel algorithm or basic signal processing with the HTML5 Audio API/WebRTC.  
+
+Special thanks to Texas Instruments for the best explanation of the Goertzel algorithm I could find.
+[http://www.ti.com/lit/an/spra066/spra066.pdf](http://www.ti.com/lit/an/spra066/spra066.pdf)
+
 
 author
 ==========
