@@ -9,9 +9,9 @@ describe("Goertzel", function() {
   describe("algorithm", function(){
     beforeEach(function() {
       goertzel = new Goertzel(allFrequencies,8000,0)
-      goertzel.getEnergyFromSample(0)
-      goertzel.getEnergyFromSample(546)
-      values = goertzel.getEnergyFromSample(1504)
+      goertzel.getEnergiesFromSample(0)
+      goertzel.getEnergiesFromSample(546)
+      values = goertzel.getEnergiesFromSample(1504)
     })
 
     it("should be able to remember previous samples", function() {
@@ -36,6 +36,16 @@ describe("Goertzel", function() {
 
     it("should increment the filter length after receiving samples", function() {
       expect(values.filterLength).toEqual({ 697 : 3, 770 : 3, 852 : 3, 941 : 3, 1209 : 3, 1336 : 3, 1477 : 3, 1633 : 3 })
+    })
+
+    it("should be able to get the energy of a specific frequency based on a sample", function(){
+      var value = goertzel.getEnergyFromSample(1337,697)
+      expect(value).toEqual(0.5665648144136298)
+    })
+
+    it("should be able to remember a sample that was processed using getEnergyFromSample", function(){
+      goertzel.getEnergyFromSample(1337,697)
+      expect(goertzel.register.sample).toEqual(1337)
     })
 
   })
@@ -68,7 +78,7 @@ describe("Goertzel", function() {
     })
 
     it("should accept a good signal", function() {
-      var goodsignal = goertzel.peakFilter([1,4,500,4,1,2,0],20)
+      var goodsignal = goertzel.peakFilter([0,0,1900,0,0,0,0],20)
       expect(goodsignal).toEqual(false)
     })
 

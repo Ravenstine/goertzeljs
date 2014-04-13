@@ -1,0 +1,17 @@
+header {
+  width: 800px;
+  word-wrap: break-word;
+}
+
+#output {
+  width: 800px;
+  word-wrap: break-word;
+  border-width: 3px;
+  border-style: solid;
+  border-radius: 15px;
+  border-color: black;
+  min-height: 50px;
+  margin-top: 20px;
+  padding-left: 10px;
+  padding-right: 10px;
+}

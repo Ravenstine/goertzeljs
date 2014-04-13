@@ -1,7 +1,7 @@
-function DTMF(samplerate,downsampleRate,peakFilterSensitivity,threshold){
+function DTMF(samplerate,peakFilterSensitivity,repeatMin,downsampleRate,threshold){
   var self = this
   self.peakFilterSensitivity = peakFilterSensitivity
-  self.downsampleRate = downsampleRate || 5
+  self.downsampleRate = downsampleRate || 1
   self.samplerate = samplerate / self.downsampleRate
   self.frequencyTable = {
     697: {1209: "1", 1336: "2", 1477: "3", 1633: "A"}, 
@@ -14,10 +14,11 @@ function DTMF(samplerate,downsampleRate,peakFilterSensitivity,threshold){
   self.highFrequencies = []
   for (var key in self.frequencyTable[self.lowFrequencies[0]]) self.highFrequencies.push(parseInt(key))
   self.allFrequencies = self.lowFrequencies.concat(self.highFrequencies)  
-  self.threshold = threshold || 0.0002
+  self.threshold = threshold || 0
   self.repeatCounter = 0
   self.firstPreviousValue = ""
   self.goertzel = new Goertzel(self.allFrequencies,self.samplerate,self.threshold)
+  self.repeatMin = repeatMin
 
   self.energyProfileToCharacter = function(register){
     var energies = register.energies
@@ -55,17 +56,29 @@ function DTMF(samplerate,downsampleRate,peakFilterSensitivity,threshold){
 
   }
 
-  self.processBin = function(bin){
+  self.floatBufferToInt = function(floatBuffer){
+    var intBuffer = []
+    for (var i=0; i<floatBuffer.length; i++){
+      intBuffer.push(self.goertzel.floatToIntSample(floatBuffer[i]))
+    }
+    return intBuffer
+  }
+
+  self.processBuffer = function(buffer){
     var value = ""
     var intSample
     var register
     var windowedSample
+    var energy
+    var highEnergies = []
+    var lowEnergies = []
+    var frequency
 
     // Downsample by choosing every Nth sample.
-    for ( var i=0; i< bin.length; i+=self.downsampleRate ) {
-        intSample = self.goertzel.floatToIntSample(bin[i])
-        windowedSample = self.goertzel.windowFunction(intSample,i,(bin.length/self.downsampleRate))
-        register = self.goertzel.getEnergyFromSample(windowedSample)
+    for ( var i=0; i<buffer.length; i+=self.downsampleRate ) {
+        intSample = buffer[i]
+        windowedSample = self.goertzel.windowFunction(intSample,i,(buffer.length/self.downsampleRate))
+        register = self.goertzel.getEnergiesFromSample(windowedSample)
         value = self.energyProfileToCharacter(register)
     } // END DOWNSAMPLE 
 
@@ -80,25 +93,28 @@ function DTMF(samplerate,downsampleRate,peakFilterSensitivity,threshold){
       var freq = self.lowFrequencies[i]
       lowEnergies.push(register.energies[freq])
     }    
-    var badPeaks = false
-    if (self.goertzel.peakFilter(highEnergies,self.peakFilterSensitivity) == true){
-      badPeaks = true
-    } else if (self.goertzel.peakFilter(lowEnergies,self.peakFilterSensitivity) == true){
-      badPeaks = true
-    } // END PEAK TEST
+    var badPeaks = self.goertzel.doublePeakFilter(highEnergies,lowEnergies,self.peakFilterSensitivity)
 
     if (badPeaks == false){
-        if (value == self.firstPreviousValue && value != undefined ){
-          self.repeatCounter+=1
-          if (self.repeatCounter == 4 && typeof this.onDecode === "function"){
-            setTimeout(this.onDecode(value), 0);
-          }
-        } else {
-          self.repeatCounter = 0
-          self.firstPreviousValue = value
+      if (value == self.firstPreviousValue && value != undefined ){
+        self.repeatCounter+=1
+        if (self.repeatCounter == self.repeatMin && typeof this.onDecode === "function"){
+            setTimeout(this.onDecode(value), 0)
         }
+      } else {
+        self.repeatCounter = 0
+        self.firstPreviousValue = value
+      }
     }
+
     self.goertzel.refresh()
+
+
   }
+
+
+
+
+
 
 }
