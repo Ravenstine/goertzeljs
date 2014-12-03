@@ -5,7 +5,7 @@ A pure JavaScript implementation of the Goertzel algorithm.
 
 The algorithm is used for detecting if specific frequencies are present in a sound(similar to a Discrete Fourier Transform).  It has been most commonly used to detect DTMF(aka Touch-tone) from phone keypads, but it can also be used for a variety of other projects(instrument tuning, decoding FSK, detecting ultrasound, sonar, etc).
 
-This particular project is all vanilla JavaScript and uses no outside libraries.  Practical use, however, may require a browser that supports AudioContext and getUserMedia.  Because of this, the demo will only work on recent versions of Chrome and Firefox since it is processing in real-time.
+This particular project is all vanilla JavaScript and uses no outside libraries, but requires a browser that supports AudioContext and getUserMedia.  Because of this, the demo will only work with recent versions of Chrome and Firefox.
 
 demo
 ==========
@@ -13,7 +13,7 @@ demo
 
 The demo is a DTMF detector that uses a microphone input.  To test the demo, you must have a microphone set up on your computer(and configured in your browser settings) and a source to play DTMF(Audacity or an actual phone).
 
-Simply play some DTMF sounds and the detected characters will appear on the page.
+Simply play some DTMF tones and the detected characters will appear on the page.
 
 limitations
 ==========
@@ -30,7 +30,7 @@ Since Goertzel.js is only about 95% effective at getting rid of noise, it may oc
 
 The longer the buffer, the easier it is to filter out noise; this also means that the duration of a DTMF tone must be longer.  
 
-At this time, frequencies need to occur for at least 0.11 seconds long to be detected consistently with a 512 sample buffer.  This is way beyond the minimum duration specified by ITU-T(0.043 seconds).
+At this time, frequencies need to occur for at least 0.11 seconds long to be detected consistently with a 512 sample buffer.  This is more than twice the minimum duration specified by ITU-T(0.043 seconds).
 
 how to use
 ==========
@@ -162,13 +162,9 @@ notes
 ==========
 Since this is a new project, the documentation here may become outdated quickly.
 
-contribution
-==========
-To contribute, fork the project and make a pull-request!
-
 conclusion
 ==========
-I hope this project will be useful for anyone who wants to understand the Goertzel algorithm or basic signal processing with the HTML5 Audio API/WebRTC.  
+I hope this project will be useful for anyone who wants to understand the Goertzel algorithm or basic signal processing with the HTML5 Audio API.  
 
 Special thanks to Texas Instruments for the best explanation of the Goertzel algorithm I could find.
 [http://www.ti.com/lit/an/spra066/spra066.pdf](http://www.ti.com/lit/an/spra066/spra066.pdf)
