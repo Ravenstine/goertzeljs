@@ -142,7 +142,9 @@ For applying the Exact Blackman window function to a sample, use windowFunction:
 goertzel.windowFunction(sample,sampleIndex,bufferSize)
 ```
 
-Practical use of DTMF requires significant noise reduction.  Because other methods I tried did not seem to work very well, I came up with my own noise filtration.  It works by finding the peak energy in a given spectrum of frequencies, then finding the second highest energy and throwing out the sample if secondHighestEnergy >= peakEnergy/peakFilterSensitivity.  
+UPDATE: I'm not convinced that the window function does anything.  I may remove it unless someone can figure out how to properly employ it.
+
+Practical use of DTMF requires significant noise reduction.  If you have control over the signal, it would be best to mute audio that can interfere; phone systems mute microphone input to accurately receive DTMF.  On the other hand, you may want to decode frequencies from the same input where other sounds/noise may be received so you will need to filter the noise.  Because other methods I tried did not seem to work very well, I came up with my own noise filtration by finding the peak energy in a given spectrum of frequencies, then finding the second highest energy and throwing out the sample if secondHighestEnergy >= peakEnergy/peakFilterSensitivity.  
 
 ```
 goertzel.peakFilter(energies,sensitivity)
@@ -158,9 +160,6 @@ goertzel.doublePeakFilter(energies1,energies2,sensitivity)
 
 doublePeakFilter does the same thing as the normal peak filter but with two arrays at the same time.  
 
-notes
-==========
-Since this is a new project, the documentation here may become outdated quickly.
 
 conclusion
 ==========
