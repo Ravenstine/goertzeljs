@@ -23,50 +23,74 @@ class Goertzel
     @register.energies[frequency]
 
   refresh: () ->
-    @firstPrevious, @secondPrevious, @totalPower, @filterLength, @coefficient = {}
+    @firstPrevious = @secondPrevious = @totalPower = @filterLength = @coefficient = {}
     for frequency in @allFrequencies
       normalizedFrequency = frequency / @samplerate
       @coefficient[frequency] = 2.0 * Math.cos(2.0 * Math.PI * normalizedFrequency)
-    @register = new FrequencyRegister(@allFrequencies)
+    @register = new @.constructor.FrequencyRegister(@allFrequencies)
 
-  floatToIntSample: (floatSample) ->
-    intSample = floatSample * 32768
-    if intSample > 32767
-      return 32767
-    else if intsample < -32786
-      return -32768
-    Math.round intSample
 
-  windowFunction: (sample, sampleIndex, bufferSize) ->
-    # Exact Blackman
-    sample * (0.426591 - 0.496561 * Math.cos(2 * Math.PI * sampleIndex/bufferSize) + 0.076848 * Math.cos(4 * Math.PI * sampleIndex/bufferSize))
+  @Utilities:
+    floatToIntSample: (floatSample) ->
+      intSample = floatSample * 32768
+      if intSample > 32767
+        return 32767
+      else if intSample < -32786
+        return -32768
+      Math.round intSample
 
-  peakFilter: (energies, sensitivity) ->
-    energies = energies.sort().reverse()
-    peak = energies[0]
-    secondPeak = energies[1]
-    thirdPeak = energies[2]
-    trough = energies.reverse()[0]
-    if secondPeak > peak / sensitivity or 
-     thirdPeak > secondPeak / (sensitivity / 2) or 
-     trough > peak / (sensitivity / 2)
-      true
-    else
-      false
+    downsampleBuffer: (buffer, downsampleRate, mapSample) ->
+      downsampledBuffer = []
+      i = 0
+      while i < buffer.length
+        sample = buffer[i]
+        if mapSample
+          downsampledBuffer.push mapSample(sample, i, buffer.length, downsampleRate)
+        else
+          downsampledBuffer.push sample
+        i += downsampleRate
+      downsampledBuffer
 
-  doublePeakFilter: (energies1, energies2, sensitivity) ->
-    if self.peakFilter(energies1, sensitivity) == true or self.peakFilter(energies2, sensitivity) == true
-      true
-    else
-      false    
+    eachDownsample: (buffer, downsampleRate, fn) ->
+      i = 0
+      while i < buffer.length
+        sample = buffer[i]
+        fn?(sample, i, buffer.length, downsampleRate)
+        i += downsampleRate
 
-  class FrequencyRegister
+    hamming: (sample, sampleIndex, bufferSize) ->
+      sample * (0.54 - 0.46 * Math.cos(2 * Math.PI * sampleIndex / bufferSize))
+
+    exactBlackman: (sample, sampleIndex, bufferSize) ->
+      sample * (0.426591 - 0.496561 * Math.cos(2 * Math.PI * sampleIndex/bufferSize) + 0.076848 * Math.cos(4 * Math.PI * sampleIndex/bufferSize))
+
+    peakFilter: (energies, sensitivity) ->
+      energies = energies.sort().reverse()
+      peak = energies[0]
+      secondPeak = energies[1]
+      thirdPeak = energies[2]
+      trough = energies.reverse()[0]
+      if secondPeak > peak / sensitivity or 
+       thirdPeak > secondPeak / (sensitivity / 2) or 
+       trough > peak / (sensitivity / 2)
+        true
+      else
+        false
+
+    doublePeakFilter: (energies1, energies2, sensitivity) ->
+      if (self.peakFilter(energies1, sensitivity) == true) or (self.peakFilter(energies2, sensitivity) == true)
+        true
+      else
+        false
+
+
+  class @FrequencyRegister
     constructor: (frequencies) ->
       @allFrequencies = frequencies
-      @firstPrevious, @secondPrevious, @totalPower, @filterLength, @energies = {}
+      @firstPrevious = @secondPrevious = @totalPower = @filterLength = @energies = {}
       @sample = 0
       for frequency in @allFrequencies
-        @firstPrevious[frequency], @secondPrevious[frequency], @totalPower[frequency], @filterLength[frequency], @energies[frequency] = 0.0
+        @firstPrevious[frequency] = @secondPrevious[frequency] = @totalPower[frequency] = @filterLength[frequency] = @energies[frequency] = 0.0
 
     rememberSample: (sample, frequency) ->
       @secondPrevious[frequency] = @firstPrevious[frequency]

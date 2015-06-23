@@ -17,18 +17,12 @@ Simply play some DTMF tones and the detected characters will appear on the page.
 
 limitations
 ==========
-This library isn't 100% perfect at filtering out background sound.  
 
-Currently, noise is filtered out through both energy detection threshold(minimum energy needed to be considered a valid signal) and multiple peak detection, the latter of which is more effective.
-
-Features currently lacking:
-
-* Sliding Goertzel
-* Twist/reverse-twist detection.
+Currently, noise can be filtered out through both energy detection threshold(minimum energy needed to be considered a valid signal) and multiple peak detection, the latter of which is more effective.  Some window functions(Hamming, Exact Blackman) are provided as well.
 
 Since Goertzel.js is only about 95% effective at getting rid of noise, it may occasionally "mistake" a sound pattern for a DTMF tone.  It may also have a difficult time detecting DTMF tones if there is too much noise.
 
-The longer the buffer, the easier it is to filter out noise; this also means that the duration of a DTMF tone must be longer.  
+The longer the buffer, the easier it is to filter out noise; this also means that the duration of a DTMF tone must be longer.  Implementing a sliding buffer helps too.
 
 At this time, frequencies need to occur for at least 0.11 seconds long to be detected consistently with a 512 sample buffer.  This is more than twice the minimum duration specified by ITU-T(0.043 seconds).
 
