@@ -78,7 +78,7 @@ class Goertzel
         false
 
     doublePeakFilter: (energies1, energies2, sensitivity) ->
-      if (self.peakFilter(energies1, sensitivity) == true) or (self.peakFilter(energies2, sensitivity) == true)
+      if (@peakFilter(energies1, sensitivity) == true) or (@peakFilter(energies2, sensitivity) == true)
         true
       else
         false
