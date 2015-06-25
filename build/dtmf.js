@@ -85,7 +85,7 @@ DTMF = (function() {
     intBuffer = [];
     i = 0;
     while (i < floatBuffer.length) {
-      intBuffer.push(this.goertzel.floatToIntSample(floatBuffer[i]));
+      intBuffer.push(Goertzel.Utilities.floatToIntSample(floatBuffer[i]));
       i++;
     }
     return intBuffer;
@@ -104,7 +104,7 @@ DTMF = (function() {
     i = 0;
     while (i < buffer.length) {
       intSample = buffer[i];
-      windowedSample = this.goertzel.windowFunction(intSample, i, buffer.length / this.downsampleRate);
+      windowedSample = Goertzel.Utilities.exactBlackman(intSample, i, buffer.length / this.downsampleRate);
       register = this.goertzel.getEnergiesFromSample(windowedSample);
       value = this.energyProfileToCharacter(register);
       i += this.downsampleRate;
@@ -121,7 +121,7 @@ DTMF = (function() {
       lowEnergies.push(register.energies[freq]);
       i++;
     }
-    badPeaks = this.goertzel.doublePeakFilter(highEnergies, lowEnergies, this.peakFilterSensitivity);
+    badPeaks = Goertzel.Utilities.doublePeakFilter(highEnergies, lowEnergies, this.peakFilterSensitivity);
     if (badPeaks === false) {
       if (value === this.firstPreviousValue && value !== void 0) {
         this.repeatCounter += 1;

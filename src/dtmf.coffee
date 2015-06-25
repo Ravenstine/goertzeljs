@@ -70,7 +70,7 @@ class DTMF
     intBuffer = []
     i = 0
     while i < floatBuffer.length
-      intBuffer.push @goertzel.floatToIntSample(floatBuffer[i])
+      intBuffer.push Goertzel.Utilities.floatToIntSample(floatBuffer[i])
       i++
     intBuffer
 
@@ -87,7 +87,7 @@ class DTMF
     i = 0
     while i < buffer.length
       intSample = buffer[i]
-      windowedSample = @goertzel.windowFunction(intSample, i, buffer.length / @downsampleRate)
+      windowedSample = Goertzel.Utilities.exactBlackman(intSample, i, buffer.length / @downsampleRate)
       register = @goertzel.getEnergiesFromSample(windowedSample)
       value = @energyProfileToCharacter(register)
       i += @downsampleRate
@@ -103,7 +103,7 @@ class DTMF
       freq = @lowFrequencies[i]
       lowEnergies.push register.energies[freq]
       i++
-    badPeaks = @goertzel.doublePeakFilter(highEnergies, lowEnergies, @peakFilterSensitivity)
+    badPeaks = Goertzel.Utilities.doublePeakFilter(highEnergies, lowEnergies, @peakFilterSensitivity)
     if badPeaks == false
       if value == @firstPreviousValue and value != undefined
         @repeatCounter += 1

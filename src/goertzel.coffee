@@ -1,4 +1,4 @@
-class Goertzel 
+class Goertzel
   constructor: (allFrequencies, samplerate, threshold) ->
     @threshold      = threshold
     @samplerate     = samplerate
@@ -87,11 +87,10 @@ class Goertzel
   class @FrequencyRegister
     constructor: (frequencies) ->
       @allFrequencies = frequencies
-      @firstPrevious = @secondPrevious = @totalPower = @filterLength = @energies = {}
+      @[attr] = {} for attr in ['firstPrevious', 'secondPrevious', 'totalPower', 'filterLength', 'energies']
       @sample = 0
       for frequency in @allFrequencies
-        @firstPrevious[frequency] = @secondPrevious[frequency] = @totalPower[frequency] = @filterLength[frequency] = @energies[frequency] = 0.0
-
+        @[attr][frequency] = 0.0 for attr in ['firstPrevious', 'secondPrevious', 'totalPower', 'filterLength', 'energies']
     rememberSample: (sample, frequency) ->
       @secondPrevious[frequency] = @firstPrevious[frequency]
       @firstPrevious[frequency]  = sample 
