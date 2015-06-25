@@ -4,7 +4,6 @@ var DTMF;
 DTMF = (function() {
   function DTMF(samplerate, peakFilterSensitivity, repeatMin, downsampleRate, threshold) {
     var key;
-    var key;
     this.peakFilterSensitivity = peakFilterSensitivity;
     this.downsampleRate = downsampleRate || 1;
     this.samplerate = samplerate / this.downsampleRate;
@@ -51,8 +50,6 @@ DTMF = (function() {
   }
 
   DTMF.prototype.energyProfileToCharacter = function(register) {
-    var f;
-    var i;
     var energies, f, highFrequency, highFrequencyEngergy, i, lowFrequency, lowFrequencyEnergy;
     energies = register.energies;
     highFrequency = 0.0;
@@ -95,10 +92,6 @@ DTMF = (function() {
   };
 
   DTMF.prototype.processBuffer = function(buffer) {
-    var i;
-    var lowEnergies;
-    var i;
-    var highEnergies;
     var badPeaks, energy, f, freq, frequency, highEnergies, i, intSample, lowEnergies, register, value, windowedSample;
     value = '';
     intSample = void 0;
@@ -140,7 +133,7 @@ DTMF = (function() {
         this.firstPreviousValue = value;
       }
     }
-    this.goertzel.refresh();
+    return this.goertzel.refresh();
   };
 
   return DTMF;
