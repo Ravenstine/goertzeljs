@@ -1,44 +1,44 @@
-DTMF = (samplerate, peakFilterSensitivity, repeatMin, downsampleRate, threshold) ->
-  `var key`
-  self = this
-  self.peakFilterSensitivity = peakFilterSensitivity
-  self.downsampleRate = downsampleRate or 1
-  self.samplerate = samplerate / self.downsampleRate
-  self.frequencyTable =
-    697:
-      1209: '1'
-      1336: '2'
-      1477: '3'
-      1633: 'A'
-    770:
-      1209: '4'
-      1336: '5'
-      1477: '6'
-      1633: 'B'
-    852:
-      1209: '7'
-      1336: '8'
-      1477: '9'
-      1633: 'C'
-    941:
-      1209: '*'
-      1336: '0'
-      1477: '#'
-      1633: 'D'
-  self.lowFrequencies = []
-  for key of self.frequencyTable
-    self.lowFrequencies.push parseInt(key)
-  self.highFrequencies = []
-  for key of self.frequencyTable[self.lowFrequencies[0]]
-    self.highFrequencies.push parseInt(key)
-  self.allFrequencies = self.lowFrequencies.concat(self.highFrequencies)
-  self.threshold = threshold or 0
-  self.repeatCounter = 0
-  self.firstPreviousValue = ''
-  self.goertzel = new Goertzel(self.allFrequencies, self.samplerate, self.threshold)
-  self.repeatMin = repeatMin
+class DTMF 
+  constructor: (samplerate, peakFilterSensitivity, repeatMin, downsampleRate, threshold) ->
+    `var key`
+    @peakFilterSensitivity = peakFilterSensitivity
+    @downsampleRate = downsampleRate or 1
+    @samplerate = samplerate / @downsampleRate
+    @frequencyTable =
+      697:
+        1209: '1'
+        1336: '2'
+        1477: '3'
+        1633: 'A'
+      770:
+        1209: '4'
+        1336: '5'
+        1477: '6'
+        1633: 'B'
+      852:
+        1209: '7'
+        1336: '8'
+        1477: '9'
+        1633: 'C'
+      941:
+        1209: '*'
+        1336: '0'
+        1477: '#'
+        1633: 'D'
+    @lowFrequencies = []
+    for key of @frequencyTable
+      @lowFrequencies.push parseInt(key)
+    @highFrequencies = []
+    for key of @frequencyTable[@lowFrequencies[0]]
+      @highFrequencies.push parseInt(key)
+    @allFrequencies = @lowFrequencies.concat(@highFrequencies)
+    @threshold = threshold or 0
+    @repeatCounter = 0
+    @firstPreviousValue = ''
+    @goertzel = new Goertzel(@allFrequencies, @samplerate, @threshold)
+    @repeatMin = repeatMin
 
-  self.energyProfileToCharacter = (register) ->
+  energyProfileToCharacter: (register) ->
     `var f`
     `var i`
     energies = register.energies
@@ -46,9 +46,9 @@ DTMF = (samplerate, peakFilterSensitivity, repeatMin, downsampleRate, threshold)
     highFrequency = 0.0
     highFrequencyEngergy = 0.0
     i = 0
-    while i < self.highFrequencies.length
-      f = self.highFrequencies[i]
-      if energies[f] > highFrequencyEngergy and energies[f] > self.threshold
+    while i < @highFrequencies.length
+      f = @highFrequencies[i]
+      if energies[f] > highFrequencyEngergy and energies[f] > @threshold
         highFrequencyEngergy = energies[f]
         highFrequency = f
       i++
@@ -56,28 +56,28 @@ DTMF = (samplerate, peakFilterSensitivity, repeatMin, downsampleRate, threshold)
     lowFrequency = 0.0
     lowFrequencyEnergy = 0.0
     i = 0
-    while i < self.lowFrequencies.length
-      f = self.lowFrequencies[i]
-      if energies[f] > lowFrequencyEnergy and energies[f] > self.threshold
+    while i < @lowFrequencies.length
+      f = @lowFrequencies[i]
+      if energies[f] > lowFrequencyEnergy and energies[f] > @threshold
         lowFrequencyEnergy = energies[f]
         lowFrequency = f
       i++
     # Set up the register for garbage collection.
     register = null
     # delete register
-    if self.frequencyTable[lowFrequency] != undefined
-      return self.frequencyTable[lowFrequency][highFrequency] or null
+    if @frequencyTable[lowFrequency] != undefined
+      return @frequencyTable[lowFrequency][highFrequency] or null
     return
 
-  self.floatBufferToInt = (floatBuffer) ->
+  floatBufferToInt: (floatBuffer) ->
     intBuffer = []
     i = 0
     while i < floatBuffer.length
-      intBuffer.push self.goertzel.floatToIntSample(floatBuffer[i])
+      intBuffer.push @goertzel.floatToIntSample(floatBuffer[i])
       i++
     intBuffer
 
-  self.processBuffer = (buffer) ->
+  processBuffer: (buffer) ->
     `var i`
     `var lowEnergies`
     `var i`
@@ -94,35 +94,33 @@ DTMF = (samplerate, peakFilterSensitivity, repeatMin, downsampleRate, threshold)
     i = 0
     while i < buffer.length
       intSample = buffer[i]
-      windowedSample = self.goertzel.windowFunction(intSample, i, buffer.length / self.downsampleRate)
-      register = self.goertzel.getEnergiesFromSample(windowedSample)
-      value = self.energyProfileToCharacter(register)
-      i += self.downsampleRate
+      windowedSample = @goertzel.windowFunction(intSample, i, buffer.length / @downsampleRate)
+      register = @goertzel.getEnergiesFromSample(windowedSample)
+      value = @energyProfileToCharacter(register)
+      i += @downsampleRate
     # END DOWNSAMPLE 
     # Run peak test to throw out samples with too many energy spectrum peaks or where the difference between energies is not great enough.
     highEnergies = []
-    while i < self.highFrequencies.length
-      f = self.highFrequencies[i]
+    while i < @highFrequencies.length
+      f = @highFrequencies[i]
       highEnergies.push register.energies[f]
       i++
     lowEnergies = []
-    while i < self.lowFrequencies.length
-      freq = self.lowFrequencies[i]
+    while i < @lowFrequencies.length
+      freq = @lowFrequencies[i]
       lowEnergies.push register.energies[freq]
       i++
-    badPeaks = self.goertzel.doublePeakFilter(highEnergies, lowEnergies, self.peakFilterSensitivity)
+    badPeaks = @goertzel.doublePeakFilter(highEnergies, lowEnergies, @peakFilterSensitivity)
     if badPeaks == false
-      if value == self.firstPreviousValue and value != undefined
-        self.repeatCounter += 1
-        if self.repeatCounter == self.repeatMin and typeof @onDecode == 'function'
+      if value == @firstPreviousValue and value != undefined
+        @repeatCounter += 1
+        if @repeatCounter == @repeatMin and typeof @onDecode == 'function'
           setTimeout @onDecode(value), 0
       else
-        self.repeatCounter = 0
-        self.firstPreviousValue = value
-    self.goertzel.refresh()
+        @repeatCounter = 0
+        @firstPreviousValue = value
+    @goertzel.refresh()
     return
-
-  return
 
 # ---
 # generated by js2coffee 2.0.4
