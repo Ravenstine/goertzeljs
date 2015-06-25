@@ -50,29 +50,27 @@ DTMF = (function() {
   }
 
   DTMF.prototype.energyProfileToCharacter = function(register) {
-    var energies, f, highFrequency, highFrequencyEngergy, i, lowFrequency, lowFrequencyEnergy;
+    var energies, f, highFrequency, highFrequencyEngergy, j, k, len, len1, lowFrequency, lowFrequencyEnergy, ref, ref1;
     energies = register.energies;
     highFrequency = 0.0;
     highFrequencyEngergy = 0.0;
-    i = 0;
-    while (i < this.highFrequencies.length) {
-      f = this.highFrequencies[i];
+    ref = this.highFrequencies;
+    for (j = 0, len = ref.length; j < len; j++) {
+      f = ref[j];
       if (energies[f] > highFrequencyEngergy && energies[f] > this.threshold) {
         highFrequencyEngergy = energies[f];
         highFrequency = f;
       }
-      i++;
     }
     lowFrequency = 0.0;
     lowFrequencyEnergy = 0.0;
-    i = 0;
-    while (i < this.lowFrequencies.length) {
-      f = this.lowFrequencies[i];
+    ref1 = this.lowFrequencies;
+    for (k = 0, len1 = ref1.length; k < len1; k++) {
+      f = ref1[k];
       if (energies[f] > lowFrequencyEnergy && energies[f] > this.threshold) {
         lowFrequencyEnergy = energies[f];
         lowFrequency = f;
       }
-      i++;
     }
     register = null;
     if (this.frequencyTable[lowFrequency] !== void 0) {

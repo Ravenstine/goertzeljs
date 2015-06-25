@@ -42,23 +42,17 @@ class DTMF
     # Find high frequency.
     highFrequency = 0.0
     highFrequencyEngergy = 0.0
-    i = 0
-    while i < @highFrequencies.length
-      f = @highFrequencies[i]
+    for f in @highFrequencies
       if energies[f] > highFrequencyEngergy and energies[f] > @threshold
         highFrequencyEngergy = energies[f]
         highFrequency = f
-      i++
     # Find low frequency.
     lowFrequency = 0.0
     lowFrequencyEnergy = 0.0
-    i = 0
-    while i < @lowFrequencies.length
-      f = @lowFrequencies[i]
+    for f in @lowFrequencies
       if energies[f] > lowFrequencyEnergy and energies[f] > @threshold
         lowFrequencyEnergy = energies[f]
         lowFrequency = f
-      i++
     # Set up the register for garbage collection.
     register = null
     # delete register
