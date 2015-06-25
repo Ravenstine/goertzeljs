@@ -35,11 +35,15 @@ Goertzel = (function() {
   };
 
   Goertzel.prototype.refresh = function() {
-    var frequency, j, len, normalizedFrequency, ref;
-    this.firstPrevious = this.secondPrevious = this.totalPower = this.filterLength = this.coefficient = {};
-    ref = this.allFrequencies;
+    var attr, frequency, j, k, len, len1, normalizedFrequency, ref, ref1;
+    ref = ['firstPrevious', 'secondPrevious', 'totalPower', 'filterLength', 'coefficient'];
     for (j = 0, len = ref.length; j < len; j++) {
-      frequency = ref[j];
+      attr = ref[j];
+      this[attr] = {};
+    }
+    ref1 = this.allFrequencies;
+    for (k = 0, len1 = ref1.length; k < len1; k++) {
+      frequency = ref1[k];
       normalizedFrequency = frequency / this.samplerate;
       this.coefficient[frequency] = 2.0 * Math.cos(2.0 * Math.PI * normalizedFrequency);
     }

@@ -23,7 +23,7 @@ class Goertzel
     @register.energies[frequency]
 
   refresh: () ->
-    @firstPrevious = @secondPrevious = @totalPower = @filterLength = @coefficient = {}
+    @[attr] = {} for attr in ['firstPrevious', 'secondPrevious', 'totalPower', 'filterLength', 'coefficient']
     for frequency in @allFrequencies
       normalizedFrequency = frequency / @samplerate
       @coefficient[frequency] = 2.0 * Math.cos(2.0 * Math.PI * normalizedFrequency)
