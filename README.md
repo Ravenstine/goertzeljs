@@ -15,6 +15,17 @@ The demo is a DTMF detector that uses a microphone input.  To test the demo, you
 
 Simply play some DTMF tones and the detected characters will appear on the page.
 
+You can run the demo yourself by installing finalhandler and serve-static with NPM(you do have NPM installed, right?):
+
+```sudo npm install finalhandler serve-static```
+
+Then run the server:
+
+```node server.js```
+
+And the page will be accessible at *http://localhost:8000/demo.html*.
+
+
 how to use
 ==========
 To create a Goertzel instance:
@@ -67,6 +78,14 @@ This will return a frequency register, which is just an object that contains the
 At this point, the Goertzel algorithm is finished.  The simplest way to detect if a frequency is present is by looking at which frequency has the highest energy in contrast to the otehr frequencies in the register.
 
 See dtmf.js on how to process buffers from microphone audio with goertzel.js.
+
+#### Compilation
+Make sure you have Coffeescript installed first:
+
+```sudo npm install -g coffee-script```
+
+Compile your changes to the CoffeeScript source by running *compile.sh*.  The changes will appear in the **build** directory.
+
 
 dtmf.js
 ==========
