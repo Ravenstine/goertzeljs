@@ -126,15 +126,15 @@ A buffer should be an array of float samples, which will be converted to integer
 
 To subscribe to a DTMF detection:
 ```
-dtmf.onDecode = function(value){ // do something // }
+dtmf.on("decode", function(value){ // do something // })
 ```
 
 The value is whatever DTMF was detected.  So to insert that value on to your page:
 
 ```javascript
-dtmf.onDecode = function(value){
+dtmf.on("decode", function(value){
   document.querySelector('#output').innerHTML = outputElement.innerHTML + value
-}
+})
 ```
 
 extra features
