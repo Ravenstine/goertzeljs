@@ -47,6 +47,7 @@ DTMF = (function() {
     this.firstPreviousValue = '';
     this.goertzel = new Goertzel(this.allFrequencies, this.samplerate, this.threshold);
     this.repeatMin = repeatMin;
+    this.decodeHandlers = [];
   }
 
   DTMF.prototype.energyProfileToCharacter = function(register) {
@@ -90,7 +91,7 @@ DTMF = (function() {
   };
 
   DTMF.prototype.processBuffer = function(buffer) {
-    var badPeaks, energy, f, freq, frequency, highEnergies, i, intSample, lowEnergies, register, value, windowedSample;
+    var badPeaks, energy, f, freq, frequency, handler, highEnergies, i, intSample, j, len, lowEnergies, ref, register, value, windowedSample;
     value = '';
     intSample = void 0;
     register = void 0;
@@ -123,8 +124,12 @@ DTMF = (function() {
     if (badPeaks === false) {
       if (value === this.firstPreviousValue && value !== void 0) {
         this.repeatCounter += 1;
-        if (this.repeatCounter === this.repeatMin && typeof this.onDecode === 'function') {
-          setTimeout(this.onDecode(value), 0);
+        if (this.repeatCounter === this.repeatMin) {
+          ref = this.decodeHandlers;
+          for (j = 0, len = ref.length; j < len; j++) {
+            handler = ref[j];
+            setTimeout(handler(value), 0);
+          }
         }
       } else {
         this.repeatCounter = 0;
@@ -132,6 +137,13 @@ DTMF = (function() {
       }
     }
     return this.goertzel.refresh();
+  };
+
+  DTMF.prototype.on = function(eventName, handler) {
+    switch (eventName) {
+      case "decode":
+        return this.decodeHandlers.push(handler);
+    }
   };
 
   return DTMF;

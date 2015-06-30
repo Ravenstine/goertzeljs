@@ -75,7 +75,7 @@ This will return a frequency register, which is just an object that contains the
 }
 ```
 
-At this point, the Goertzel algorithm is finished.  The simplest way to detect if a frequency is present is by looking at which frequency has the highest energy in contrast to the otehr frequencies in the register.
+At this point, the Goertzel algorithm is finished.  The simplest way to detect if a frequency is present is by looking at which frequency has the highest energy in contrast to the other frequencies in the register.
 
 See dtmf.js on how to process buffers from microphone audio with goertzel.js.
 

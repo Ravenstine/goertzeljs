@@ -19,11 +19,11 @@ function success(e){
   recorder = context.createScriptProcessor(bufferSize, 1, 1)
   var outputElement = document.querySelector('#output')
   var dtmf = new DTMF(context.sampleRate,1.4,6,1,0.005)
-  dtmf.onDecode = function(value){
+  dtmf.on("decode", function(value){
     if (value != null){
       outputElement.innerHTML = outputElement.innerHTML + value
     }
-  }
+  })
   recorder.onaudioprocess = function(e){
     var buffer = e.inputBuffer.getChannelData(0)
     dtmf.processBuffer(buffer)

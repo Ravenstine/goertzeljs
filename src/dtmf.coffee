@@ -36,6 +36,7 @@ class DTMF
     @firstPreviousValue = ''
     @goertzel = new Goertzel(@allFrequencies, @samplerate, @threshold)
     @repeatMin = repeatMin
+    @decodeHandlers = []
 
   energyProfileToCharacter: (register) ->
     energies = register.energies
@@ -101,9 +102,14 @@ class DTMF
     if badPeaks == false
       if value == @firstPreviousValue and value != undefined
         @repeatCounter += 1
-        if @repeatCounter == @repeatMin and typeof @onDecode == 'function'
-          setTimeout @onDecode(value), 0
+        if @repeatCounter == @repeatMin
+          for handler in @decodeHandlers
+            setTimeout handler(value), 0
       else
         @repeatCounter = 0
         @firstPreviousValue = value
     @goertzel.refresh()
+
+  on: (eventName, handler) ->
+    switch eventName
+      when "decode" then @decodeHandlers.push(handler)
