@@ -9,7 +9,9 @@ This particular project is all vanilla and uses no outside libraries, but requir
 
 demo
 ==========
-[goertzel.herokuapp.com](http://goertzel.herokuapp.com/)
+[goertzel.herokuapp.com](https://goertzel.herokuapp.com/)
+
+* **NOTE:** Chrome(and possibly other browsers) now require the use of HTTPS when the getUserMedia API is used.  I'm uncertain if the effects the sever file I included in the project but, if my demo link above exhibits an error, be sure you are using HTTPS and not plain HTTP*
 
 The demo is a DTMF detector that uses a microphone input.  To test the demo, you must have a microphone set up on your computer(and configured in your browser settings) and a source to play DTMF(Audacity or an actual phone).
 
