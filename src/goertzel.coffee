@@ -7,20 +7,8 @@ class Goertzel
 
   getEnergiesFromSample: (sample) ->
     for frequency in @allFrequencies
-      @getEnergyFromSample(sample, frequency)
+      @register.processSample sample, frequency, @coefficient[frequency]
     @register
-
-  getEnergyFromSample: (sample, frequency) ->
-    @register.sample = sample
-    sine = @register.sample + @coefficient[frequency] * @register.firstPrevious[frequency] - (@register.secondPrevious[frequency])
-    @register.rememberSample sine, frequency
-    @register.filterLength[frequency] += 1
-    power = @register.secondPrevious[frequency] * @register.secondPrevious[frequency] + @register.firstPrevious[frequency] * @register.firstPrevious[frequency] - (@coefficient[frequency] * @register.firstPrevious[frequency] * @register.secondPrevious[frequency])
-    @register.totalPower[frequency] += @register.sample * @register.sample
-    if @register.totalPower[frequency] == 0
-      @register.totalPower[frequency] = 1
-    @register.energies[frequency] = power / @register.totalPower[frequency] / @register.filterLength[frequency]
-    @register.energies[frequency]
 
   refresh: () ->
     @[attr] = {} for attr in ['firstPrevious', 'secondPrevious', 'totalPower', 'filterLength', 'coefficient']
@@ -91,10 +79,20 @@ class Goertzel
       @sample = 0
       for frequency in @allFrequencies
         @[attr][frequency] = 0.0 for attr in ['firstPrevious', 'secondPrevious', 'totalPower', 'filterLength', 'energies']
-    rememberSample: (sample, frequency) ->
+    pushSample: (sample, frequency) ->
       @secondPrevious[frequency] = @firstPrevious[frequency]
       @firstPrevious[frequency]  = sample 
+    processSample: (sample, frequency, coefficient) ->
+      ## Main algorithm
+      @sample = sample
+      sine = @sample + coefficient * @firstPrevious[frequency] - (@secondPrevious[frequency])
+      @pushSample sine, frequency
+      @filterLength[frequency] += 1
+      power = @secondPrevious[frequency] * @secondPrevious[frequency] + @firstPrevious[frequency] * @firstPrevious[frequency] - (coefficient * @firstPrevious[frequency] * @secondPrevious[frequency])
+      @totalPower[frequency] += @sample * @sample
+      if @totalPower[frequency] == 0
+        @totalPower[frequency] = 1
+      @energies[frequency] = power / @totalPower[frequency] / @filterLength[frequency]
+      @energies[frequency]
 
-
-
-
+module.exports = Goertzel if module?.exports

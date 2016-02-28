@@ -1,0 +1,35 @@
+{
+  "name": "goertzel",
+  "version": "0.0.1",
+  "description": "A pure JavaScript implementation of the Goertzel algorithm.",
+  "main": "build/goertzel.js",
+  "scripts": {
+    "test": "./compile.sh && jasmine",
+    "build": "./compile.sh",
+    "start": "node demo/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/Ravenstine/goertzeljs.git"
+  },
+  "keywords": [
+    "goertzel",
+    "fourier",
+    "dtmf",
+    "audio",
+    "dft",
+    "telephony"
+  ],
+  "author": "Ben Titcomb (@Ravenstine)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Ravenstine/goertzeljs/issues"
+  },
+  "devDependencies": {
+    "coffee-script": "^1.10.0",
+    "finalhandler": "^0.4.1",
+    "jasmine": "^2.4.1",
+    "jasmine-node": "^1.14.5",
+    "serve-static": "^1.10.2"
+  }
+}

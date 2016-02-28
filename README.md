@@ -1,35 +1,34 @@
-goertzel.js
-==========
-
+# goertzel.js
 A pure JavaScript implementation of the Goertzel algorithm.  The source is written in CoffeeScript.
 
-The algorithm is used for detecting if specific frequencies are present in a sound(similar to a Discrete Fourier Transform).  It has been most commonly used to detect DTMF(aka Touch-tone) from phone keypads, but it can also be used for a variety of other projects(instrument tuning, decoding FSK, detecting ultrasound, sonar, etc).
+The algorithm is used for detecting if specific frequencies are present in a sound(similar to a Discrete Fourier Transform).  It has been most commonly used to detect DTMF(aka Touch-tone) from phone keypads, but it can also be used for a variety of other projects(instrument tuning, decoding FSK, creating spectrograms, etc).
 
 This particular project is all vanilla and uses no outside libraries, but requires a browser that supports AudioContext and getUserMedia.  Because of this, the demo will only work with recent versions of Chrome and Firefox.
 
-demo
-==========
+### quick notes
+I apologize if this readme contains inaccurate documentation.  Hopefully, that will change in the future.  If something doesn't make sense or simply doesn't work as described, both the tests and the demo should accurately describe how to use the library.
+
+## demo
 [goertzel.herokuapp.com](https://goertzel.herokuapp.com/)
 
-* **NOTE:** Chrome(and possibly other browsers) now require the use of HTTPS when the getUserMedia API is used.  I'm uncertain if the effects the sever file I included in the project but, if my demo link above exhibits an error, be sure you are using HTTPS and not plain HTTP*
-
 The demo is a DTMF detector that uses a microphone input.  To test the demo, you must have a microphone set up on your computer(and configured in your browser settings) and a source to play DTMF(Audacity or an actual phone).
+
+> **NOTE:** Chrome(and possibly other browsers) now require the use of HTTPS when the getUserMedia API is used.  If my demo link above exhibits an error, be sure you are using HTTPS and not plain HTTP.  Running the demo locally should work just fine without HTTPS.*
 
 Simply play some DTMF tones and the detected characters will appear on the page.
 
 You can run the demo yourself by installing finalhandler and serve-static with NPM(you do have NPM installed, right?):
 
-```sudo npm install finalhandler serve-static```
+```npm install```
 
 Then run the server:
 
-```node server.js```
+```npm start```
 
-And the page will be accessible at *http://localhost:8000/demo.html*.
+And the page will be accessible at *http://localhost:8000/demo*.
 
 
-how to use
-==========
+## usage
 To create a Goertzel instance:
 ```
 var goertzel = new Goertzel(allFrequencies, samplerate, threshold)
@@ -57,40 +56,35 @@ var goertzel = new Goertzel(allFrequencies, 8000, 0.0002)
 To process a sample, give your integer sample to getEnergyFromSample.
 
 ```javascript
-register = goertzel.getEnergyFromSample(sample)
+register = goertzel.getEnergiesFromSample(sample)
 ```
 This will return a frequency register, which is just an object that contains the energy level of every frequency at a given sample
 
 ```
-// An unpopulated register.
+// The attributes of a blank register.
 {
   firstPrevious: {}, 
   secondPrevious: {}, 
   totalPower: {}, 
   filterLength: {}, 
   sample: 0, 
-  energies: {},
-  rememberSample: function(sample,frequency){
-    this.secondPrevious[frequency] = this.firstPrevious[frequency]
-    this.firstPrevious[frequency] = sample
-  }
+  energies: {}
 }
 ```
 
-At this point, the Goertzel algorithm is finished.  The simplest way to detect if a frequency is present is by looking at which frequency has the highest energy in contrast to the other frequencies in the register.
+Passing a sample, frequency, and coefficient as arguments to a register's `processSample` method will perform the actual Goertzel algorithm.  The simplest way to detect if a frequency is present is by looking at which frequency has the highest energy in contrast to the other frequencies in the register.
 
 See dtmf.js on how to process buffers from microphone audio with goertzel.js.
 
 #### Compilation
-Make sure you have Coffeescript installed first:
+Install dependencies with NPM: ```npm install```
 
-```sudo npm install -g coffee-script```
+Compile your changes to the CoffeeScript source by running `compile.sh`.  The changes will appear in the **build** directory.
 
-Compile your changes to the CoffeeScript source by running *compile.sh*.  The changes will appear in the **build** directory.
+#### Testing
+Tests are written with Jasmine.  Run the tests with ```npm test```.
 
-
-dtmf.js
-==========
+## DTMF
 I included a DTMF library that depends on goertzel.js for demonstration purposes; while I'll occasionally develop it, it's not officially supported so at the moment I won't include any specs on it.
 
 At this time, frequencies need to occur for at least 0.11 seconds long to be detected consistently with a 512 sample buffer.  Unfortunately, this is more than twice the minimum duration specified by ITU-T(0.043 seconds).
@@ -139,8 +133,7 @@ dtmf.on("decode", function(value){
 })
 ```
 
-extra features
-==========
+## extra features
 I included some useful utility methods with goertzel.js that I found useful with DTMF detection that could also be used for other forms of detection.
 
 
@@ -173,14 +166,18 @@ Goertzel.Utilities.doublePeakFilter(energies1,energies2,sensitivity)
 doublePeakFilter does the same thing as the normal peak filter but with two arrays at the same time.  
 
 
-conclusion
-==========
+## conclusion
 I hope this project will be useful for anyone who wants to understand the Goertzel algorithm or basic signal processing with the HTML5 Audio API.  
 
-Special thanks to Texas Instruments for the best explanation of the Goertzel algorithm I could find.
+Thanks are in order to Texas Instruments for the best explanation of the Goertzel algorithm I could find.
 [http://www.ti.com/lit/an/spra066/spra066.pdf](http://www.ti.com/lit/an/spra066/spra066.pdf)
 
 
-author
-==========
+## author
 * Ben Titcomb [@Ravenstine](https://github.com/Ravenstine)
+
+## license
+**The MIT License (MIT)**
+Copyright (c) 2016 Ben Titcomb
+
+See the `LICENSE` file for more details.
