@@ -1,5 +1,5 @@
 {
-  "name": "goertzel",
+  "name": "goertzeljs",
   "version": "2.0.0",
   "description": "A pure JavaScript implementation of the Goertzel algorithm.",
   "main": "build/goertzel.js",

@@ -27,6 +27,17 @@ Then run the server:
 
 And the page will be accessible at *http://localhost:8000/demo*.
 
+## installation
+
+You can, of course, include `goertzel.js` as a script tag in your HTML and Goertzel will be there as a global.
+
+If you are using Bower:
+
+`bower install goertzel`
+
+Or if you want to use it in Node.js:
+
+`npm install goertzeljs`
 
 ## usage
 To create a Goertzel instance:
