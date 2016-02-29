@@ -1,8 +1,8 @@
 class DTMF 
-  constructor: (samplerate, peakFilterSensitivity, repeatMin, downsampleRate, threshold) ->
-    @peakFilterSensitivity = peakFilterSensitivity
-    @downsampleRate = downsampleRate or 1
-    @samplerate = samplerate / @downsampleRate
+  constructor: (options={}) ->
+    @peakFilterSensitivity = options.peakFilterSensitivity
+    @downsampleRate = options.downsampleRate or 1
+    @sampleRate = options.sampleRate / @downsampleRate
     @frequencyTable =
       697:
         1209: '1'
@@ -31,11 +31,14 @@ class DTMF
     for key of @frequencyTable[@lowFrequencies[0]]
       @highFrequencies.push parseInt(key)
     @allFrequencies = @lowFrequencies.concat(@highFrequencies)
-    @threshold = threshold or 0
+    @threshold = options.threshold or 0
     @repeatCounter = 0
     @firstPreviousValue = ''
-    @goertzel = new Goertzel(@allFrequencies, @samplerate, @threshold)
-    @repeatMin = repeatMin
+    @goertzel = new Goertzel
+      frequencies: @allFrequencies
+      sampleRate:  @sampleRate
+      threshold:   @threshold
+    @repeatMin = options.repeatMin
     @decodeHandlers = []
 
   energyProfileToCharacter: (register) ->
@@ -54,9 +57,7 @@ class DTMF
       if energies[f] > lowFrequencyEnergy and energies[f] > @threshold
         lowFrequencyEnergy = energies[f]
         lowFrequency = f
-    # Set up the register for garbage collection.
-    register = null
-    # delete register
+
     if @frequencyTable[lowFrequency] != undefined
       return @frequencyTable[lowFrequency][highFrequency] or null
     return
@@ -83,7 +84,7 @@ class DTMF
     while i < buffer.length
       intSample = buffer[i]
       windowedSample = Goertzel.Utilities.exactBlackman(intSample, i, buffer.length / @downsampleRate)
-      register = @goertzel.getEnergiesFromSample(windowedSample)
+      register = @goertzel.processSample(windowedSample)
       value = @energyProfileToCharacter(register)
       i += @downsampleRate
     # END DOWNSAMPLE 

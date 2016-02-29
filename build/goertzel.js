@@ -2,37 +2,104 @@
 var Goertzel;
 
 Goertzel = (function() {
-  function Goertzel(allFrequencies, samplerate, threshold) {
-    this.threshold = threshold;
-    this.samplerate = samplerate;
-    this.allFrequencies = allFrequencies;
+  function Goertzel(options) {
+    if (options == null) {
+      options = {};
+    }
+    this.threshold = options.threshold || 0;
+    this.sampleRate = options.sampleRate;
+    this.frequencies = options.frequencies;
     this.refresh();
   }
 
-  Goertzel.prototype.getEnergiesFromSample = function(sample) {
-    var frequency, j, len, ref;
-    ref = this.allFrequencies;
-    for (j = 0, len = ref.length; j < len; j++) {
-      frequency = ref[j];
-      this.register.processSample(sample, frequency, this.coefficient[frequency]);
-    }
-    return this.register;
-  };
-
   Goertzel.prototype.refresh = function() {
-    var attr, frequency, j, k, len, len1, normalizedFrequency, ref, ref1;
-    ref = ['firstPrevious', 'secondPrevious', 'totalPower', 'filterLength', 'coefficient'];
+    var attr, frequency, j, k, len, len1, ref, ref1, results;
+    ref = ['firstPrevious', 'secondPrevious', 'totalPower', 'filterLength', 'energies'];
     for (j = 0, len = ref.length; j < len; j++) {
       attr = ref[j];
       this[attr] = {};
     }
-    ref1 = this.allFrequencies;
+    if (!this.coefficient) {
+      this._initializeCoefficients(this.frequencies);
+    }
+    ref1 = this.frequencies;
+    results = [];
     for (k = 0, len1 = ref1.length; k < len1; k++) {
       frequency = ref1[k];
-      normalizedFrequency = frequency / this.samplerate;
-      this.coefficient[frequency] = 2.0 * Math.cos(2.0 * Math.PI * normalizedFrequency);
+      results.push((function() {
+        var l, len2, ref2, results1;
+        ref2 = ['firstPrevious', 'secondPrevious', 'totalPower', 'filterLength', 'energies'];
+        results1 = [];
+        for (l = 0, len2 = ref2.length; l < len2; l++) {
+          attr = ref2[l];
+          results1.push(this[attr][frequency] = 0.0);
+        }
+        return results1;
+      }).call(this));
     }
-    return this.register = new this.constructor.FrequencyRegister(this.allFrequencies);
+    return results;
+  };
+
+  Goertzel.prototype.processSample = function(sample) {
+    var frequency, j, len, ref;
+    ref = this.frequencies;
+    for (j = 0, len = ref.length; j < len; j++) {
+      frequency = ref[j];
+      this._getEnergyOfFrequency(sample, frequency);
+    }
+    return this;
+  };
+
+  Goertzel.prototype.max = function() {
+    var frequency, j, len, max, ref, results;
+    max = void 0;
+    ref = this.frequencies;
+    results = [];
+    for (j = 0, len = ref.length; j < len; j++) {
+      frequency = ref[j];
+      if (max === void 0) {
+        results.push(max = {
+          frequency: frequency,
+          energy: this.energies[frequency]
+        });
+      } else {
+        results.push(void 0);
+      }
+    }
+    return results;
+  };
+
+  Goertzel.prototype._getEnergyOfFrequency = function(sample, frequency) {
+    var coefficient, power, sine;
+    this.currentSample = sample;
+    coefficient = this.coefficient[frequency];
+    sine = sample + coefficient * this.firstPrevious[frequency] - this.secondPrevious[frequency];
+    this._queueSample(sine, frequency);
+    this.filterLength[frequency] += 1;
+    power = this.secondPrevious[frequency] * this.secondPrevious[frequency] + this.firstPrevious[frequency] * this.firstPrevious[frequency] - (coefficient * this.firstPrevious[frequency] * this.secondPrevious[frequency]);
+    this.totalPower[frequency] += sample * sample;
+    if (this.totalPower[frequency] === 0) {
+      this.totalPower[frequency] = 1;
+    }
+    this.energies[frequency] = power / this.totalPower[frequency] / this.filterLength[frequency];
+    return this.energies[frequency];
+  };
+
+  Goertzel.prototype._initializeCoefficients = function(frequencies) {
+    var frequency, j, len, normalizedFrequency, results;
+    this.coefficient = {};
+    results = [];
+    for (j = 0, len = frequencies.length; j < len; j++) {
+      frequency = frequencies[j];
+      normalizedFrequency = frequency / this.sampleRate;
+      results.push(this.coefficient[frequency] = 2.0 * Math.cos(2.0 * Math.PI * normalizedFrequency));
+    }
+    return results;
+  };
+
+  Goertzel.prototype._queueSample = function(sample, frequency) {
+    this.secondPrevious[frequency] = this.firstPrevious[frequency];
+    return this.firstPrevious[frequency] = sample;
   };
 
   Goertzel.Utilities = {
@@ -99,53 +166,19 @@ Goertzel = (function() {
       } else {
         return false;
       }
+    },
+    generateSine: function(frequency, sampleRate, numberOfSamples) {
+      var buffer, i, v;
+      buffer = [];
+      i = 0;
+      while (i < numberOfSamples) {
+        v = Math.sin(Math.PI * 2 * (i / sampleRate) * frequency);
+        buffer.push(v);
+        i++;
+      }
+      return buffer;
     }
   };
-
-  Goertzel.FrequencyRegister = (function() {
-    function FrequencyRegister(frequencies) {
-      var attr, frequency, j, k, l, len, len1, len2, ref, ref1, ref2;
-      this.allFrequencies = frequencies;
-      ref = ['firstPrevious', 'secondPrevious', 'totalPower', 'filterLength', 'energies'];
-      for (j = 0, len = ref.length; j < len; j++) {
-        attr = ref[j];
-        this[attr] = {};
-      }
-      this.sample = 0;
-      ref1 = this.allFrequencies;
-      for (k = 0, len1 = ref1.length; k < len1; k++) {
-        frequency = ref1[k];
-        ref2 = ['firstPrevious', 'secondPrevious', 'totalPower', 'filterLength', 'energies'];
-        for (l = 0, len2 = ref2.length; l < len2; l++) {
-          attr = ref2[l];
-          this[attr][frequency] = 0.0;
-        }
-      }
-    }
-
-    FrequencyRegister.prototype.pushSample = function(sample, frequency) {
-      this.secondPrevious[frequency] = this.firstPrevious[frequency];
-      return this.firstPrevious[frequency] = sample;
-    };
-
-    FrequencyRegister.prototype.processSample = function(sample, frequency, coefficient) {
-      var power, sine;
-      this.sample = sample;
-      sine = this.sample + coefficient * this.firstPrevious[frequency] - this.secondPrevious[frequency];
-      this.pushSample(sine, frequency);
-      this.filterLength[frequency] += 1;
-      power = this.secondPrevious[frequency] * this.secondPrevious[frequency] + this.firstPrevious[frequency] * this.firstPrevious[frequency] - (coefficient * this.firstPrevious[frequency] * this.secondPrevious[frequency]);
-      this.totalPower[frequency] += this.sample * this.sample;
-      if (this.totalPower[frequency] === 0) {
-        this.totalPower[frequency] = 1;
-      }
-      this.energies[frequency] = power / this.totalPower[frequency] / this.filterLength[frequency];
-      return this.energies[frequency];
-    };
-
-    return FrequencyRegister;
-
-  })();
 
   return Goertzel;
 

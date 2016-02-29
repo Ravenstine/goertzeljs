@@ -1,21 +1,55 @@
 class Goertzel
-  constructor: (allFrequencies, samplerate, threshold) ->
-    @threshold      = threshold
-    @samplerate     = samplerate
-    @allFrequencies = allFrequencies
+  constructor: (options={}) ->
+    @threshold      = options.threshold || 0
+    @sampleRate     = options.sampleRate
+    @frequencies    = options.frequencies
     @refresh()
 
-  getEnergiesFromSample: (sample) ->
-    for frequency in @allFrequencies
-      @register.processSample sample, frequency, @coefficient[frequency]
-    @register
-
   refresh: () ->
-    @[attr] = {} for attr in ['firstPrevious', 'secondPrevious', 'totalPower', 'filterLength', 'coefficient']
-    for frequency in @allFrequencies
-      normalizedFrequency = frequency / @samplerate
+    ## Re-initializes Goertzel when we are taking in a new buffer
+    @[attr] = {} for attr in ['firstPrevious', 'secondPrevious', 'totalPower', 'filterLength', 'energies']
+    @_initializeCoefficients(@frequencies) unless @coefficient
+    # @register = new @.constructor.Processor(@frequencies)
+    for frequency in @frequencies
+      @[attr][frequency] = 0.0 for attr in ['firstPrevious', 'secondPrevious', 'totalPower', 'filterLength', 'energies']
+
+  processSample: (sample) ->
+    for frequency in @frequencies
+      @_getEnergyOfFrequency sample, frequency
+    @ # returning self would be most useful here
+
+  max: ->
+    max = undefined
+    for frequency in @frequencies
+      if max == undefined
+        max = {frequency: frequency, energy: @energies[frequency]}
+
+  ## private
+  _getEnergyOfFrequency: (sample, frequency) ->
+    ## Main algorithm
+    @currentSample = sample
+    coefficient = @coefficient[frequency]
+    sine = sample + coefficient * @firstPrevious[frequency] - (@secondPrevious[frequency])
+    @_queueSample sine, frequency
+    @filterLength[frequency] += 1
+    power = @secondPrevious[frequency] * @secondPrevious[frequency] + @firstPrevious[frequency] * @firstPrevious[frequency] - (coefficient * @firstPrevious[frequency] * @secondPrevious[frequency])
+    @totalPower[frequency] += sample * sample
+    if @totalPower[frequency] == 0
+      @totalPower[frequency] = 1
+    @energies[frequency] = power / @totalPower[frequency] / @filterLength[frequency]
+    @energies[frequency]
+
+  _initializeCoefficients: (frequencies) ->
+    @coefficient = {}
+    for frequency in frequencies
+      normalizedFrequency = frequency / @sampleRate
       @coefficient[frequency] = 2.0 * Math.cos(2.0 * Math.PI * normalizedFrequency)
-    @register = new @.constructor.FrequencyRegister(@allFrequencies)
+
+  _queueSample: (sample, frequency) ->
+    @secondPrevious[frequency] = @firstPrevious[frequency]
+    @firstPrevious[frequency]  = sample 
+  ## /private
+
 
 
   @Utilities:
@@ -71,28 +105,14 @@ class Goertzel
       else
         false
 
-
-  class @FrequencyRegister
-    constructor: (frequencies) ->
-      @allFrequencies = frequencies
-      @[attr] = {} for attr in ['firstPrevious', 'secondPrevious', 'totalPower', 'filterLength', 'energies']
-      @sample = 0
-      for frequency in @allFrequencies
-        @[attr][frequency] = 0.0 for attr in ['firstPrevious', 'secondPrevious', 'totalPower', 'filterLength', 'energies']
-    pushSample: (sample, frequency) ->
-      @secondPrevious[frequency] = @firstPrevious[frequency]
-      @firstPrevious[frequency]  = sample 
-    processSample: (sample, frequency, coefficient) ->
-      ## Main algorithm
-      @sample = sample
-      sine = @sample + coefficient * @firstPrevious[frequency] - (@secondPrevious[frequency])
-      @pushSample sine, frequency
-      @filterLength[frequency] += 1
-      power = @secondPrevious[frequency] * @secondPrevious[frequency] + @firstPrevious[frequency] * @firstPrevious[frequency] - (coefficient * @firstPrevious[frequency] * @secondPrevious[frequency])
-      @totalPower[frequency] += @sample * @sample
-      if @totalPower[frequency] == 0
-        @totalPower[frequency] = 1
-      @energies[frequency] = power / @totalPower[frequency] / @filterLength[frequency]
-      @energies[frequency]
+    ## useful for testing purposes
+    generateSine: (frequency, sampleRate, numberOfSamples) ->
+      buffer = []
+      i = 0
+      while i < numberOfSamples
+        v = Math.sin(Math.PI * 2 * (i / sampleRate) * frequency)
+        buffer.push v
+        i++
+      buffer
 
 module.exports = Goertzel if module?.exports

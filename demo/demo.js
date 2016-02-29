@@ -18,7 +18,13 @@ function success(e){
   var bufferSize = 512
   recorder = context.createScriptProcessor(bufferSize, 1, 1)
   var outputElement = document.querySelector('#output')
-  var dtmf = new DTMF(context.sampleRate,1.4,6,1,0.005)
+  var dtmf = new DTMF({
+    sampleRate: context.sampleRate,
+    peakFilterSensitivity: 1.4,
+    repeatMin: 6,
+    downsampleRate: 1,
+    threshold: 0.005
+  })
   dtmf.on("decode", function(value){
     if (value != null){
       outputElement.innerHTML = outputElement.innerHTML + value

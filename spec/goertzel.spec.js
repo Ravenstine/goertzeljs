@@ -4,121 +4,36 @@ var Goertzel;
 Goertzel = require('../build/goertzel');
 
 describe('Goertzel', function() {
-  var allFrequencies, goertzel, values;
+  var allFrequencies, goertzel;
   goertzel = void 0;
-  allFrequencies = [697, 770, 852, 941, 1209, 1336, 1477, 1633];
-  values = void 0;
-  describe('algorithm', function() {
+  allFrequencies = [697, 852, 1209, 1477];
+  describe('#processSample', function() {
     beforeEach(function() {
-      goertzel = new Goertzel(allFrequencies, 8000, 0);
-      goertzel.getEnergiesFromSample(0);
-      goertzel.getEnergiesFromSample(546);
-      return values = goertzel.getEnergiesFromSample(1504);
-    });
-    it('remembers previous samples', function() {
-      return expect(values.sample).toEqual(1504);
-    });
-    it('remembers second previous energies', function() {
-      return expect(values.secondPrevious).toEqual({
-        697: 546,
-        770: 546,
-        852: 546,
-        941: 546,
-        1209: 546,
-        1336: 546,
-        1477: 546,
-        1633: 546
+      return goertzel = new Goertzel({
+        frequencies: allFrequencies,
+        sampleRate: 8000,
+        threshold: 0
       });
     });
-    it('gets the energies of specified frequencies based on samples', function() {
-      var frequency, i, len, results;
+    return it('biases towards the expected frequency', function() {
+      var buffer, f, frequency, i, j, k, len, len1, len2, results, sample;
       results = [];
       for (i = 0, len = allFrequencies.length; i < len; i++) {
         frequency = allFrequencies[i];
-        results.push(expect(values.energies[frequency]).not.toEqual(0));
+        buffer = Goertzel.Utilities.generateSine(frequency, 8000, 2000);
+        for (j = 0, len1 = buffer.length; j < len1; j++) {
+          sample = buffer[j];
+          goertzel.processSample(sample);
+        }
+        for (k = 0, len2 = allFrequencies.length; k < len2; k++) {
+          f = allFrequencies[k];
+          if (f !== frequency) {
+            expect(goertzel.energies[f] < goertzel.energies[frequency]);
+          }
+        }
+        results.push(goertzel.refresh());
       }
       return results;
-    });
-    it('gets the total power of specified frequencies based on samples', function() {
-      return expect(values.totalPower).toEqual({
-        697: 2560133,
-        770: 2560133,
-        852: 2560133,
-        941: 2560133,
-        1209: 2560133,
-        1336: 2560133,
-        1477: 2560133,
-        1633: 2560133
-      });
-    });
-    return it('increments the filter length after receiving samples', function() {
-      return expect(values.filterLength).toEqual({
-        697: 3,
-        770: 3,
-        852: 3,
-        941: 3,
-        1209: 3,
-        1336: 3,
-        1477: 3,
-        1633: 3
-      });
-    });
-  });
-  describe('::FrequencyRegister', function() {
-    return it('returns a populated frequency register', function() {
-      var register;
-      register = new Goertzel.FrequencyRegister(allFrequencies);
-      expect(register.firstPrevious).toEqual({
-        697: 0,
-        770: 0,
-        852: 0,
-        941: 0,
-        1209: 0,
-        1336: 0,
-        1477: 0,
-        1633: 0
-      });
-      expect(register.secondPrevious).toEqual({
-        697: 0,
-        770: 0,
-        852: 0,
-        941: 0,
-        1209: 0,
-        1336: 0,
-        1477: 0,
-        1633: 0
-      });
-      expect(register.sample).toEqual(0);
-      expect(register.totalPower).toEqual({
-        697: 0,
-        770: 0,
-        852: 0,
-        941: 0,
-        1209: 0,
-        1336: 0,
-        1477: 0,
-        1633: 0
-      });
-      expect(register.energies).toEqual({
-        697: 0,
-        770: 0,
-        852: 0,
-        941: 0,
-        1209: 0,
-        1336: 0,
-        1477: 0,
-        1633: 0
-      });
-      return expect(register.filterLength).toEqual({
-        697: 0,
-        770: 0,
-        852: 0,
-        941: 0,
-        1209: 0,
-        1336: 0,
-        1477: 0,
-        1633: 0
-      });
     });
   });
   describe('::Utilities#peakFilter', function() {

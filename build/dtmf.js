@@ -2,11 +2,14 @@
 var DTMF;
 
 DTMF = (function() {
-  function DTMF(samplerate, peakFilterSensitivity, repeatMin, downsampleRate, threshold) {
+  function DTMF(options) {
     var key;
-    this.peakFilterSensitivity = peakFilterSensitivity;
-    this.downsampleRate = downsampleRate || 1;
-    this.samplerate = samplerate / this.downsampleRate;
+    if (options == null) {
+      options = {};
+    }
+    this.peakFilterSensitivity = options.peakFilterSensitivity;
+    this.downsampleRate = options.downsampleRate || 1;
+    this.sampleRate = options.sampleRate / this.downsampleRate;
     this.frequencyTable = {
       697: {
         1209: '1',
@@ -42,11 +45,15 @@ DTMF = (function() {
       this.highFrequencies.push(parseInt(key));
     }
     this.allFrequencies = this.lowFrequencies.concat(this.highFrequencies);
-    this.threshold = threshold || 0;
+    this.threshold = options.threshold || 0;
     this.repeatCounter = 0;
     this.firstPreviousValue = '';
-    this.goertzel = new Goertzel(this.allFrequencies, this.samplerate, this.threshold);
-    this.repeatMin = repeatMin;
+    this.goertzel = new Goertzel({
+      frequencies: this.allFrequencies,
+      sampleRate: this.sampleRate,
+      threshold: this.threshold
+    });
+    this.repeatMin = options.repeatMin;
     this.decodeHandlers = [];
   }
 
@@ -73,7 +80,6 @@ DTMF = (function() {
         lowFrequency = f;
       }
     }
-    register = null;
     if (this.frequencyTable[lowFrequency] !== void 0) {
       return this.frequencyTable[lowFrequency][highFrequency] || null;
     }
@@ -104,7 +110,7 @@ DTMF = (function() {
     while (i < buffer.length) {
       intSample = buffer[i];
       windowedSample = Goertzel.Utilities.exactBlackman(intSample, i, buffer.length / this.downsampleRate);
-      register = this.goertzel.getEnergiesFromSample(windowedSample);
+      register = this.goertzel.processSample(windowedSample);
       value = this.energyProfileToCharacter(register);
       i += this.downsampleRate;
     }
