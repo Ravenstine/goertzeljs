@@ -95,30 +95,33 @@ Goertzel = (function() {
       return Math.round(intSample);
     },
     downsampleBuffer: function(buffer, downsampleRate, mapSample) {
-      var downsampledBuffer, i, sample;
-      downsampledBuffer = [];
+      var bufferLength, downsampledBuffer, i, sample;
+      bufferLength = buffer.length;
+      downsampledBuffer = new (Uint8ClampedArray || Array)(bufferLength / downsampleRate);
       i = 0;
-      while (i < buffer.length) {
+      while (i < bufferLength) {
         sample = buffer[i];
         if (mapSample) {
-          downsampledBuffer.push(mapSample(sample, i, buffer.length, downsampleRate));
+          downsampledBuffer[i] = mapSample(sample, i, buffer.length, downsampleRate);
         } else {
-          downsampledBuffer.push(sample);
+          downsampledBuffer[i] = sample;
         }
         i += downsampleRate;
       }
       return downsampledBuffer;
     },
-    eachDownsample: function(buffer, downsampleRate, fn) {
-      var i, results, sample;
+    eachDownsample: function(buffer, downSampleRate, fn) {
+      var bufferLength, downSampledBufferLength, i, results, sample;
       i = 0;
+      bufferLength = buffer.length;
+      downSampledBufferLength = bufferLength / downSampleRate;
       results = [];
-      while (i < buffer.length) {
+      while (i < bufferLength) {
         sample = buffer[i];
         if (typeof fn === "function") {
-          fn(sample, i, buffer.length, downsampleRate);
+          fn(sample, i, downSampledBufferLength);
         }
-        results.push(i += downsampleRate);
+        results.push(i += downSampleRate);
       }
       return results;
     },

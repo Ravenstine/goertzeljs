@@ -86,34 +86,30 @@ DTMF = (function() {
   };
 
   DTMF.prototype.processBuffer = function(buffer) {
-    var badPeaks, energy, f, freq, frequency, handler, highEnergies, i, intSample, j, len, lowEnergies, ref, register, result, value, windowedSample;
+    var badPeaks, f, freq, handler, highEnergies, i, j, len, lowEnergies, ref, result, value;
     value = '';
-    intSample = void 0;
-    register = void 0;
-    windowedSample = void 0;
-    energy = void 0;
     highEnergies = [];
     lowEnergies = [];
-    frequency = void 0;
     result = [];
+    Goertzel.Utilities.eachDownsample(buffer, this.downsampleRate, (function(_this) {
+      return function(sample, i, downSampledBufferLength) {
+        var windowedSample;
+        windowedSample = Goertzel.Utilities.exactBlackman(sample, i, downSampledBufferLength);
+        _this.goertzel.processSample(windowedSample);
+        return value = _this.energyProfileToCharacter(_this.goertzel);
+      };
+    })(this));
     i = 0;
-    while (i < buffer.length) {
-      intSample = buffer[i];
-      windowedSample = Goertzel.Utilities.exactBlackman(intSample, i, buffer.length / this.downsampleRate);
-      register = this.goertzel.processSample(windowedSample);
-      value = this.energyProfileToCharacter(register);
-      i += this.downsampleRate;
-    }
     highEnergies = [];
     while (i < this.highFrequencies.length) {
       f = this.highFrequencies[i];
-      highEnergies.push(register.energies[f]);
+      highEnergies.push(this.goertzel.energies[f]);
       i++;
     }
     lowEnergies = [];
     while (i < this.lowFrequencies.length) {
       freq = this.lowFrequencies[i];
-      lowEnergies.push(register.energies[freq]);
+      lowEnergies.push(this.goertzel.energies[freq]);
       i++;
     }
     badPeaks = Goertzel.Utilities.doublePeakFilter(highEnergies, lowEnergies, this.peakFilterSensitivity);

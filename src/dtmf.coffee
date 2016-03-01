@@ -64,33 +64,26 @@ class DTMF
 
   processBuffer: (buffer) ->
     value = ''
-    intSample = undefined
-    register = undefined
-    windowedSample = undefined
-    energy = undefined
     highEnergies = []
     lowEnergies = []
-    frequency = undefined
     result = []
     # Downsample by choosing every Nth sample.
+    Goertzel.Utilities.eachDownsample buffer, @downsampleRate, (sample,i,downSampledBufferLength)=>
+      windowedSample = Goertzel.Utilities.exactBlackman(sample, i, downSampledBufferLength)
+      @goertzel.processSample(windowedSample)
+      value = @energyProfileToCharacter(@goertzel)
     i = 0
-    while i < buffer.length
-      intSample = buffer[i]
-      windowedSample = Goertzel.Utilities.exactBlackman(intSample, i, buffer.length / @downsampleRate)
-      register = @goertzel.processSample(windowedSample)
-      value = @energyProfileToCharacter(register)
-      i += @downsampleRate
     # END DOWNSAMPLE 
     # Run peak test to throw out samples with too many energy spectrum peaks or where the difference between energies is not great enough.
     highEnergies = []
     while i < @highFrequencies.length
       f = @highFrequencies[i]
-      highEnergies.push register.energies[f]
+      highEnergies.push @goertzel.energies[f]
       i++
     lowEnergies = []
     while i < @lowFrequencies.length
       freq = @lowFrequencies[i]
-      lowEnergies.push register.energies[freq]
+      lowEnergies.push @goertzel.energies[freq]
       i++
     badPeaks = Goertzel.Utilities.doublePeakFilter(highEnergies, lowEnergies, @peakFilterSensitivity)
     if badPeaks == false

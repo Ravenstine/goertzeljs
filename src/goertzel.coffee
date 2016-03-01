@@ -56,23 +56,27 @@ class Goertzel
       Math.round intSample
 
     downsampleBuffer: (buffer, downsampleRate, mapSample) ->
-      downsampledBuffer = []
+      bufferLength = buffer.length
+      # Prefer Uint8ClampedArray for performance
+      downsampledBuffer = new (Uint8ClampedArray or Array)(bufferLength / downsampleRate)
       i = 0
-      while i < buffer.length
+      while i < bufferLength
         sample = buffer[i]
         if mapSample
-          downsampledBuffer.push mapSample(sample, i, buffer.length, downsampleRate)
+          downsampledBuffer[i] = mapSample(sample, i, buffer.length, downsampleRate)
         else
-          downsampledBuffer.push sample
+          downsampledBuffer[i] = sample
         i += downsampleRate
       downsampledBuffer
 
-    eachDownsample: (buffer, downsampleRate, fn) ->
+    eachDownsample: (buffer, downSampleRate, fn) ->
       i = 0
-      while i < buffer.length
+      bufferLength = buffer.length
+      downSampledBufferLength = bufferLength / downSampleRate
+      while i < bufferLength
         sample = buffer[i]
-        fn?(sample, i, buffer.length, downsampleRate)
-        i += downsampleRate
+        fn?(sample, i, downSampledBufferLength)
+        i += downSampleRate
 
     hamming: (sample, sampleIndex, bufferSize) ->
       sample * (0.54 - 0.46 * Math.cos(2 * Math.PI * sampleIndex / bufferSize))
