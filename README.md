@@ -3,10 +3,7 @@ A pure JavaScript implementation of the Goertzel algorithm.  The source is writt
 
 The algorithm is used for detecting if specific frequencies are present in a sound(similar to a Discrete Fourier Transform).  It has been most commonly used to detect DTMF(aka Touch-tone) from phone keypads, but it can also be used for a variety of other projects(instrument tuning, decoding FSK, creating spectrograms, etc).
 
-This particular project is all vanilla and uses no outside libraries, but requires a browser that supports AudioContext and getUserMedia.  Because of this, the demo will only work with recent versions of Chrome and Firefox.
-
-### quick notes
-I apologize if this readme contains inaccurate documentation.  Hopefully, that will change in the future.  If something doesn't make sense or simply doesn't work as described, both the tests and the demo should accurately describe how to use the library.
+This particular project can be used with no outside libraries, but requires a browser that supports AudioContext and getUserMedia.  Because of this, the demo will only work with recent versions of Chrome and Firefox.
 
 ## demo
 [goertzel.herokuapp.com](https://goertzel.herokuapp.com/)
@@ -40,57 +37,30 @@ Or if you want to use it in Node.js:
 `npm install goertzeljs`
 
 ## usage
-To create a Goertzel instance:
-```
-var goertzel = new Goertzel(allFrequencies, samplerate, threshold)
-```
-
-allFrequencies is an array of every frequency that will be detected.
-
-In the case of DTMF:
-
+Example:
 ```javascript
-var allFrequencies = [697,770,852,941,1209,1336,1477,1633]
+  var buffer = [...]; // array of int samples
+
+  var targetFrequencies = [697,770,852,941,1209,1336,1477,1633];
+
+  var goertzel = new Goertzel({
+    frequencies: targetFrequencies,
+    sampleRate: 8000
+  });
+
+  buffer.forEach(function(sample){
+    goertzel.processSample(sample);
+  });
 ```
+
+You would then look at each of the frequency keys under the `goertzel` object's `energies` attribute, and compare each of the energy levels to determine the frequencies dominant in the samples passed.
+
 The samplerate should be the sample rate of whatever sample buffers are being given to the goertzel object.  Most of the time this is either 44100 or 48000 hz.  This can be set as high or as low as necessary, though higher samplerates will create more overhead.  Consider downsampling your audio for faster processing time.  See dtmf.js on how samples can be downsampled.
-
-Noise can be filtered out through both energy detection threshold(minimum energy needed to be considered a valid signal) and multiple peak detection, the latter of which is more effective.  Some window functions(Hamming, Exact Blackman) are provided as well.
-
-The threshold is used to filter out noise mistaken for found frequency combinations when the DTMF tones are quiet.  I've found that a threshold of 0.0002 works well for DTMF, but your results may vary.
-
-The peakFilterSensitivity determines how much the peak filter discriminates against multiple frequency peaks and weak peaks.  If the second-highest energy to the peak energy is greater than 1/x of the highest frequency peak, the sample is discounted.  peakFilterSensitivity determines x.  This value is unlimited, but I found that at least 20 works well at filtering out noise when detecting DMTF.
-
-```javascript
-var goertzel = new Goertzel(allFrequencies, 8000, 0.0002)
-```
-
-To process a sample, give your integer sample to getEnergyFromSample.
-
-```javascript
-register = goertzel.getEnergiesFromSample(sample)
-```
-This will return a frequency register, which is just an object that contains the energy level of every frequency at a given sample
-
-```
-// The attributes of a blank register.
-{
-  firstPrevious: {}, 
-  secondPrevious: {}, 
-  totalPower: {}, 
-  filterLength: {}, 
-  sample: 0, 
-  energies: {}
-}
-```
-
-Passing a sample, frequency, and coefficient as arguments to a register's `processSample` method will perform the actual Goertzel algorithm.  The simplest way to detect if a frequency is present is by looking at which frequency has the highest energy in contrast to the other frequencies in the register.
-
-See dtmf.js on how to process buffers from microphone audio with goertzel.js.
 
 #### Compilation
 Install dependencies with NPM: ```npm install```
 
-Compile your changes to the CoffeeScript source by running `compile.sh`.  The changes will appear in the **build** directory.
+Compile your changes from the CoffeeScript source by running `compile.sh`.  The changes will appear in the **build** directory.
 
 #### Testing
 Tests are written with Jasmine.  Run the tests with ```npm test```.
@@ -106,8 +76,14 @@ The longer the buffer, the easier it is to filter out noise; this also means tha
 
 Here's a quick how-to on using dtmf.js with goertzel.js.
 
-```
-var dtmf = new DTMF(samplerate,peakFilterSensitivity,repeatMin,downsampleRate,threshold)
+```javascript
+  var dtmf = new DTMF({
+    sampleRate: 44100,
+    peakFilterSensitivity: 1.4,
+    repeatMin: 6,
+    downsampleRate: 1,
+    threshold: 0.005
+  });
 ```
 
 * The sample rate is the sample rate of the audio buffer being given to the dtmf object.
@@ -118,43 +94,31 @@ var dtmf = new DTMF(samplerate,peakFilterSensitivity,repeatMin,downsampleRate,th
 
 All of these values need to be adjusted depending on buffer-size, noise level, tone duration, etc.
 
-First create the object:
-
-```javascript
-var dtmf = new DTMF(44100,1.2,10,1,0)
-```
-
 Then every time you need to process a new sample buffer:
 ```javascript
-dtmf.processBin(buffer)
+dtmf.processBuffer([...]);
 ```
 
-A buffer should be an array of float samples, which will be converted to integer samples for goertzel.
+The dtmf object is expecting a buffer to be an array of float samples, which it converts to integers.
 
 To subscribe to a DTMF detection:
-```
-dtmf.on("decode", function(value){ // do something // })
-```
-
-The value is whatever DTMF was detected.  So to insert that value on to your page:
-
 ```javascript
-dtmf.on("decode", function(value){
-  document.querySelector('#output').innerHTML = outputElement.innerHTML + value
-})
+dtmf.on("decode", function(value){ // do something // });
 ```
+
+The value is whatever character that was detected.
 
 ## extra features
 I included some useful utility methods with goertzel.js that I found useful with DTMF detection that could also be used for other forms of detection.
 
 
 To convert a float sample to an integer sample, pass it to floatToIntSample and you will be returned an integer sample.
-```
+```javascript
 Goertzel.Utilities.floatToIntSample(floatSample)
 ```
 
 For applying the Hamming window function to a sample, use #hamming:
-```
+```javascript
 Goertzel.Utilities.hamming(sample,sampleIndex,bufferSize)
 ```
 
@@ -162,7 +126,7 @@ You can also use #exactBlackman to use the Exact Blackman window function.
 
 Practical use of DTMF requires significant noise reduction.  If you have control over the signal, it would be best to mute audio that can interfere; phone systems mute microphone input to accurately receive DTMF.  On the other hand, you may want to decode frequencies from the same input where other sounds/noise may be received so you will need to filter the noise.  Because other methods I tried did not seem to work very well, I came up with my own noise filtration by finding the peak energy in a given spectrum of frequencies, then finding the second highest energy and throwing out the sample if secondHighestEnergy >= peakEnergy/peakFilterSensitivity.  
 
-```
+```javascript
 Goertzel.Utilities.peakFilter(energies,sensitivity)
 ```
 
@@ -170,7 +134,7 @@ Energies needs to be a simple array of energies, and sensitivity needs to be an 
 
 peakFilter will return true if the amount of surrounding energy is too great, the peak isn't high enough, or there are multiple peaks.  Samples that pass return false.  I've found this to be a very effective means of reducing errors, and a peakFilterSensitivity value of 20 seems to work well.  The more specific you want your frequency detection to be, the higher the sensitivity you may need.
 
-```
+```javascript
 Goertzel.Utilities.doublePeakFilter(energies1,energies2,sensitivity)
 ```
 
