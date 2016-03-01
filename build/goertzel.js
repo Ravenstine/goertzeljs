@@ -50,25 +50,6 @@ Goertzel = (function() {
     return this;
   };
 
-  Goertzel.prototype.max = function() {
-    var frequency, j, len, max, ref, results;
-    max = void 0;
-    ref = this.frequencies;
-    results = [];
-    for (j = 0, len = ref.length; j < len; j++) {
-      frequency = ref[j];
-      if (max === void 0) {
-        results.push(max = {
-          frequency: frequency,
-          energy: this.energies[frequency]
-        });
-      } else {
-        results.push(void 0);
-      }
-    }
-    return results;
-  };
-
   Goertzel.prototype._getEnergyOfFrequency = function(sample, frequency) {
     var coefficient, power, sine;
     this.currentSample = sample;
@@ -177,6 +158,16 @@ Goertzel = (function() {
         i++;
       }
       return buffer;
+    },
+    floatBufferToInt: function(floatBuffer) {
+      var i, intBuffer;
+      intBuffer = [];
+      i = 0;
+      while (i < floatBuffer.length) {
+        intBuffer.push(Goertzel.Utilities.floatToIntSample(floatBuffer[i]));
+        i++;
+      }
+      return intBuffer;
     }
   };
 

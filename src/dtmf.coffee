@@ -62,14 +62,6 @@ class DTMF
       return @frequencyTable[lowFrequency][highFrequency] or null
     return
 
-  floatBufferToInt: (floatBuffer) ->
-    intBuffer = []
-    i = 0
-    while i < floatBuffer.length
-      intBuffer.push Goertzel.Utilities.floatToIntSample(floatBuffer[i])
-      i++
-    intBuffer
-
   processBuffer: (buffer) ->
     value = ''
     intSample = undefined
@@ -79,6 +71,7 @@ class DTMF
     highEnergies = []
     lowEnergies = []
     frequency = undefined
+    result = []
     # Downsample by choosing every Nth sample.
     i = 0
     while i < buffer.length
@@ -104,13 +97,18 @@ class DTMF
       if value == @firstPreviousValue and value != undefined
         @repeatCounter += 1
         if @repeatCounter == @repeatMin
+          result.push value
           for handler in @decodeHandlers
             setTimeout handler(value), 0
       else
         @repeatCounter = 0
         @firstPreviousValue = value
     @goertzel.refresh()
+    result
 
   on: (eventName, handler) ->
     switch eventName
       when "decode" then @decodeHandlers.push(handler)
+
+
+module.exports = DTMF if module?.exports

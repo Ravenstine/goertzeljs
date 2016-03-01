@@ -5,7 +5,7 @@ class Goertzel
     @frequencies    = options.frequencies
     @refresh()
 
-  refresh: () ->
+  refresh: ->
     ## Re-initializes Goertzel when we are taking in a new buffer
     @[attr] = {} for attr in ['firstPrevious', 'secondPrevious', 'totalPower', 'filterLength', 'energies']
     @_initializeCoefficients(@frequencies) unless @coefficient
@@ -17,12 +17,6 @@ class Goertzel
     for frequency in @frequencies
       @_getEnergyOfFrequency sample, frequency
     @ # returning self would be most useful here
-
-  max: ->
-    max = undefined
-    for frequency in @frequencies
-      if max == undefined
-        max = {frequency: frequency, energy: @energies[frequency]}
 
   ## private
   _getEnergyOfFrequency: (sample, frequency) ->
@@ -114,5 +108,13 @@ class Goertzel
         buffer.push v
         i++
       buffer
+
+    floatBufferToInt: (floatBuffer) ->
+      intBuffer = []
+      i = 0
+      while i < floatBuffer.length
+        intBuffer.push Goertzel.Utilities.floatToIntSample(floatBuffer[i])
+        i++
+      intBuffer
 
 module.exports = Goertzel if module?.exports
