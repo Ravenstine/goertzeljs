@@ -9,7 +9,6 @@ class Goertzel
     ## Re-initializes Goertzel when we are taking in a new buffer
     @[attr] = {} for attr in ['firstPrevious', 'secondPrevious', 'totalPower', 'filterLength', 'energies']
     @_initializeCoefficients(@frequencies) unless @coefficient
-    # @register = new @.constructor.Processor(@frequencies)
     for frequency in @frequencies
       @[attr][frequency] = 0.0 for attr in ['firstPrevious', 'secondPrevious', 'totalPower', 'filterLength', 'energies']
 
@@ -23,8 +22,9 @@ class Goertzel
     ## Main algorithm
     @currentSample = sample
     coefficient = @coefficient[frequency]
-    sine = sample + coefficient * @firstPrevious[frequency] - (@secondPrevious[frequency])
-    @_queueSample sine, frequency
+    sine = sample + coefficient * @firstPrevious[frequency] - @secondPrevious[frequency]
+    @secondPrevious[frequency] = @firstPrevious[frequency]
+    @firstPrevious[frequency]  = sine
     @filterLength[frequency] += 1
     power = @secondPrevious[frequency] * @secondPrevious[frequency] + @firstPrevious[frequency] * @firstPrevious[frequency] - (coefficient * @firstPrevious[frequency] * @secondPrevious[frequency])
     @totalPower[frequency] += sample * sample
@@ -39,9 +39,9 @@ class Goertzel
       normalizedFrequency = frequency / @sampleRate
       @coefficient[frequency] = 2.0 * Math.cos(2.0 * Math.PI * normalizedFrequency)
 
-  _queueSample: (sample, frequency) ->
+  _queueSine: (sample, frequency) ->
     @secondPrevious[frequency] = @firstPrevious[frequency]
-    @firstPrevious[frequency]  = sample 
+    @firstPrevious[frequency]  = sample
   ## /private
 
 
@@ -114,6 +114,14 @@ class Goertzel
         for frequency in frequencies
           val += (Math.sin(Math.PI * 2 * (i / sampleRate) * frequency) * volumePerSine)
         buffer[i] = val
+        i++
+      buffer
+
+    generateWhiteNoiseBuffer: (sampleRate, numberOfSamples) ->
+      buffer = new (Uint8ClampedArray or Array)(numberOfSamples)
+      i = 0
+      while i < numberOfSamples
+        buffer[i] = Math.random() * 2 - 1
         i++
       buffer
 

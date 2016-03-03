@@ -86,41 +86,42 @@ DTMF = (function() {
   };
 
   DTMF.prototype.processBuffer = function(buffer) {
-    var badPeaks, f, freq, handler, highEnergies, i, j, len, lowEnergies, ref, result, value;
+    var badPeaks, energies, f, fType, handler, i, j, k, len, len1, ref, ref1, result, value;
     value = '';
-    highEnergies = [];
-    lowEnergies = [];
     result = [];
     Goertzel.Utilities.eachDownsample(buffer, this.downsampleRate, (function(_this) {
       return function(sample, i, downSampledBufferLength) {
         var windowedSample;
         windowedSample = Goertzel.Utilities.exactBlackman(sample, i, downSampledBufferLength);
-        _this.goertzel.processSample(windowedSample);
-        return value = _this.energyProfileToCharacter(_this.goertzel);
+        return _this.goertzel.processSample(windowedSample);
       };
     })(this));
-    i = 0;
-    highEnergies = [];
-    while (i < this.highFrequencies.length) {
-      f = this.highFrequencies[i];
-      highEnergies.push(this.goertzel.energies[f]);
-      i++;
+    value = this.energyProfileToCharacter(this.goertzel);
+    energies = {
+      high: [],
+      low: []
+    };
+    ref = ['high', 'low'];
+    for (j = 0, len = ref.length; j < len; j++) {
+      fType = ref[j];
+      i = 0;
+      while (i < this[fType + "Frequencies"].length) {
+        f = this[fType + "Frequencies"][i];
+        energies[fType].push(this.goertzel.energies[f]);
+        i++;
+      }
     }
-    lowEnergies = [];
-    while (i < this.lowFrequencies.length) {
-      freq = this.lowFrequencies[i];
-      lowEnergies.push(this.goertzel.energies[freq]);
-      i++;
-    }
-    badPeaks = Goertzel.Utilities.doublePeakFilter(highEnergies, lowEnergies, this.peakFilterSensitivity);
-    if (badPeaks === false) {
-      if (value === this.firstPreviousValue && value !== void 0) {
-        this.repeatCounter += 1;
+    badPeaks = Goertzel.Utilities.doublePeakFilter(energies['high'], energies['low'], this.peakFilterSensitivity);
+    if (true) {
+      if (((value === this.firstPreviousValue) || (this.repeatMin === 0)) && value !== void 0) {
+        if (this.repeatMin !== 0) {
+          this.repeatCounter += 1;
+        }
         if (this.repeatCounter === this.repeatMin) {
           result.push(value);
-          ref = this.decodeHandlers;
-          for (j = 0, len = ref.length; j < len; j++) {
-            handler = ref[j];
+          ref1 = this.decodeHandlers;
+          for (k = 0, len1 = ref1.length; k < len1; k++) {
+            handler = ref1[k];
             setTimeout(handler(value), 0);
           }
         }

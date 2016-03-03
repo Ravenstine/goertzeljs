@@ -77,19 +77,19 @@ describe('DTMF', function() {
   ];
   return describe('#processSample', function() {
     return it('identifies all dial tones', function() {
-      var buffer, dtmf, dualTone, i, len, pair, results;
+      var buffer, dtmf, dualTone, i, len, pair, results, vals;
       dtmf = new DTMF({
         sampleRate: 44100,
         peakFilterSensitivity: 1.4,
-        repeatMin: 1
+        repeatMin: 0
       });
       results = [];
       for (i = 0, len = pairs.length; i < len; i++) {
         pair = pairs[i];
         dualTone = Goertzel.Utilities.generateSineBuffer([pair.low, pair.high], 44100, 512);
         buffer = Goertzel.Utilities.floatBufferToInt(dualTone);
-        dtmf.processBuffer(buffer);
-        results.push(expect(dtmf.processBuffer(buffer)).toContain(pair.char));
+        vals = dtmf.processBuffer(buffer);
+        results.push(expect(vals).toContain(pair.char));
       }
       return results;
     });

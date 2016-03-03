@@ -28,9 +28,19 @@ describe 'DTMF', ->
       dtmf = new DTMF
         sampleRate: 44100
         peakFilterSensitivity: 1.4
-        repeatMin: 1
+        repeatMin: 0 # since we are only testing a single buffer
       for pair in pairs
         dualTone = Goertzel.Utilities.generateSineBuffer([pair.low, pair.high], 44100, 512)
         buffer = Goertzel.Utilities.floatBufferToInt(dualTone)
-        dtmf.processBuffer(buffer)
-        expect(dtmf.processBuffer(buffer)).toContain(pair.char)
+        vals = dtmf.processBuffer(buffer)
+        expect(vals).toContain(pair.char)
+
+    # it 'does not identify dial tones in noise', ->
+    #   dtmf = new DTMF
+    #     sampleRate: 44100
+    #     peakFilterSensitivity: 1.4
+    #     repeatMin: 1
+
+    #   whiteNoise = Goertzel.Utilities.generateWhiteNoiseBuffer(44100, 512)
+    #   dtmf.processBuffer(whiteNoise)
+    #   expect(dtmf.processBuffer(whiteNoise)).toBeEmptyArray()

@@ -55,7 +55,8 @@ Goertzel = (function() {
     this.currentSample = sample;
     coefficient = this.coefficient[frequency];
     sine = sample + coefficient * this.firstPrevious[frequency] - this.secondPrevious[frequency];
-    this._queueSample(sine, frequency);
+    this.secondPrevious[frequency] = this.firstPrevious[frequency];
+    this.firstPrevious[frequency] = sine;
     this.filterLength[frequency] += 1;
     power = this.secondPrevious[frequency] * this.secondPrevious[frequency] + this.firstPrevious[frequency] * this.firstPrevious[frequency] - (coefficient * this.firstPrevious[frequency] * this.secondPrevious[frequency]);
     this.totalPower[frequency] += sample * sample;
@@ -78,7 +79,7 @@ Goertzel = (function() {
     return results;
   };
 
-  Goertzel.prototype._queueSample = function(sample, frequency) {
+  Goertzel.prototype._queueSine = function(sample, frequency) {
     this.secondPrevious[frequency] = this.firstPrevious[frequency];
     return this.firstPrevious[frequency] = sample;
   };
@@ -163,6 +164,16 @@ Goertzel = (function() {
           val += Math.sin(Math.PI * 2 * (i / sampleRate) * frequency) * volumePerSine;
         }
         buffer[i] = val;
+        i++;
+      }
+      return buffer;
+    },
+    generateWhiteNoiseBuffer: function(sampleRate, numberOfSamples) {
+      var buffer, i;
+      buffer = new (Uint8ClampedArray || Array)(numberOfSamples);
+      i = 0;
+      while (i < numberOfSamples) {
+        buffer[i] = Math.random() * 2 - 1;
         i++;
       }
       return buffer;
