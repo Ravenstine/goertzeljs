@@ -144,6 +144,12 @@ DTMF = (function() {
 
 })();
 
-if (typeof module !== "undefined" && module !== null ? module.exports : void 0) {
+if (typeof module !== 'undefined' && module.exports) {
   module.exports = DTMF;
+} else if (typeof define === 'function' && define.amd) {
+  define(function() {
+    return DTMF;
+  });
+} else {
+  window.DTMF = DTMF;
 }

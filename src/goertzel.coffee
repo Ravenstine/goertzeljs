@@ -115,7 +115,7 @@ class Goertzel
           val += (Math.sin(Math.PI * 2 * (i / sampleRate) * frequency) * volumePerSine)
         buffer[i] = val
         i++
-      buffer      
+      buffer
 
     floatBufferToInt: (floatBuffer) ->
       floatBufferLength = floatBuffer.length
@@ -126,4 +126,10 @@ class Goertzel
         i++
       intBuffer
 
-module.exports = Goertzel if module?.exports
+if typeof module != 'undefined' and module.exports # if node.js
+  module.exports = Goertzel
+else if typeof define == 'function' and define.amd # if require.js
+  define ->
+    Goertzel
+else
+  window.Goertzel = Goertzel

@@ -184,6 +184,12 @@ Goertzel = (function() {
 
 })();
 
-if (typeof module !== "undefined" && module !== null ? module.exports : void 0) {
+if (typeof module !== 'undefined' && module.exports) {
   module.exports = Goertzel;
+} else if (typeof define === 'function' && define.amd) {
+  define(function() {
+    return Goertzel;
+  });
+} else {
+  window.Goertzel = Goertzel;
 }

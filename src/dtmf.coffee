@@ -103,5 +103,10 @@ class DTMF
     switch eventName
       when "decode" then @decodeHandlers.push(handler)
 
-
-module.exports = DTMF if module?.exports
+if typeof module != 'undefined' and module.exports # if node.js
+  module.exports = DTMF
+else if typeof define == 'function' and define.amd # if require.js
+  define ->
+    DTMF
+else
+  window.DTMF = DTMF
