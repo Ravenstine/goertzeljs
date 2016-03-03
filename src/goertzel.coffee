@@ -104,20 +104,25 @@ class Goertzel
         false
 
     ## useful for testing purposes
-    generateSine: (frequency, sampleRate, numberOfSamples) ->
-      buffer = []
+
+    generateSineBuffer: (frequencies, sampleRate, numberOfSamples) ->
+      buffer = new (Uint8ClampedArray or Array)(numberOfSamples)
+      volumePerSine = 1 / frequencies.length
       i = 0
       while i < numberOfSamples
-        v = Math.sin(Math.PI * 2 * (i / sampleRate) * frequency)
-        buffer.push v
+        val = 0
+        for frequency in frequencies
+          val += (Math.sin(Math.PI * 2 * (i / sampleRate) * frequency) * volumePerSine)
+        buffer[i] = val
         i++
-      buffer
+      buffer      
 
     floatBufferToInt: (floatBuffer) ->
-      intBuffer = []
+      floatBufferLength = floatBuffer.length
+      intBuffer = new (Uint8ClampedArray or Array)(floatBufferLength)
       i = 0
-      while i < floatBuffer.length
-        intBuffer.push Goertzel.Utilities.floatToIntSample(floatBuffer[i])
+      while i < floatBufferLength
+        intBuffer[i] = Goertzel.Utilities.floatToIntSample(floatBuffer[i])
         i++
       intBuffer
 

@@ -18,7 +18,7 @@ describe 'Goertzel', ->
 
     it 'biases towards the expected frequency', ->
       for frequency in allFrequencies
-        buffer = Goertzel.Utilities.generateSine(frequency, 8000, 2000)
+        buffer = Goertzel.Utilities.generateSineBuffer([frequency], 8000, 2000)
         for sample in buffer
           goertzel.processSample sample
         for f in allFrequencies

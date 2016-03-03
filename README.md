@@ -140,6 +140,11 @@ Goertzel.Utilities.doublePeakFilter(energies1,energies2,sensitivity)
 
 doublePeakFilter does the same thing as the normal peak filter but with two arrays at the same time.  
 
+```javascript
+Goertzel.Utilities.generateSineBuffer(frequencies=[], sampleRate, numberOfSamples)
+```
+generateSineBuffer lets you create an artificial buffer of any number of combined sine waves.  Added for testing purposes, but could have any number of uses.  If you needed to create an oscillator to generate DTMF or other tones without access to a browser's audio API, that's your function.
+
 
 ## conclusion
 I hope this project will be useful for anyone who wants to understand the Goertzel algorithm or basic signal processing with the HTML5 Audio API.  
