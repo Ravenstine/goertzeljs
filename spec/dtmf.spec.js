@@ -75,12 +75,11 @@ describe('DTMF', function() {
       char: 'D'
     }
   ];
-  return describe('#processSample', function() {
-    return it('identifies all dial tones', function() {
+  describe('#processBuffer', function() {
+    it('identifies all dial tones', function() {
       var buffer, dtmf, dualTone, i, len, pair, results, vals;
       dtmf = new DTMF({
         sampleRate: 44100,
-        peakFilterSensitivity: 1.4,
         repeatMin: 0
       });
       results = [];
@@ -92,6 +91,36 @@ describe('DTMF', function() {
         results.push(expect(vals).toContain(pair.char));
       }
       return results;
+    });
+    return it('does not identify dial tones in noise', function() {
+      var dtmf, result;
+      dtmf = new DTMF({
+        sampleRate: 44100,
+        peakFilterSensitivity: 1.4,
+        repeatMin: 6
+      });
+      dtmf.processBuffer(Goertzel.Utilities.generateWhiteNoiseBuffer(44100, 512));
+      dtmf.processBuffer(Goertzel.Utilities.generateWhiteNoiseBuffer(44100, 512));
+      dtmf.processBuffer(Goertzel.Utilities.generateWhiteNoiseBuffer(44100, 512));
+      dtmf.processBuffer(Goertzel.Utilities.generateWhiteNoiseBuffer(44100, 512));
+      dtmf.processBuffer(Goertzel.Utilities.generateWhiteNoiseBuffer(44100, 512));
+      dtmf.processBuffer(Goertzel.Utilities.generateWhiteNoiseBuffer(44100, 512));
+      result = dtmf.processBuffer(Goertzel.Utilities.generateWhiteNoiseBuffer(44100, 512));
+      return expect(result).toBeEmptyArray();
+    });
+  });
+  return describe('#calibrate', function() {
+    return it('alters the decibelThreshold', function() {
+      var dtmf;
+      dtmf = new DTMF({
+        sampleRate: 44100,
+        peakFilterSensitivity: 1.4,
+        repeatMin: 6
+      });
+      expect(dtmf.options.decibelThreshold).toEqual(0);
+      dtmf.calibrate();
+      dtmf.processBuffer([1, 2, 3, 4, 5, 4, 3, 2, 1, 2, 3, 4, 5, 6, 7, 8, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
+      return expect(dtmf.options.decibelThreshold).toBeGreaterThan(0);
     });
   });
 });

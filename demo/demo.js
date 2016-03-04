@@ -20,10 +20,12 @@ function success(e){
   var outputElement = document.querySelector('#output')
   var dtmf = new DTMF({
     sampleRate: context.sampleRate,
-    peakFilterSensitivity: 1.4,
     repeatMin: 6,
     downsampleRate: 1,
-    threshold: 0.005
+    energyThreshold: 0.005,
+    filter: function(e){
+      return !Goertzel.Utilities.doublePeakFilter(e.energies['high'], e.energies['low'], 1.4);
+    }
   })
   dtmf.on("decode", function(value){
     if (value != null){

@@ -1,6 +1,5 @@
 class Goertzel
   constructor: (options={}) ->
-    @threshold      = options.threshold || 0
     @sampleRate     = options.sampleRate
     @frequencies    = options.frequencies
     @refresh()
@@ -133,6 +132,17 @@ class Goertzel
         intBuffer[i] = Goertzel.Utilities.floatToIntSample(floatBuffer[i])
         i++
       intBuffer
+
+    averageDecibels: (buffer) ->
+      # always returns a positive number, even
+      # if a buffer contains negative samples
+      sum = 0
+      bufferLength = buffer.length
+      i   = 0
+      while i < bufferLength
+        sum += Math.abs(buffer[i])
+        i++
+      sum / bufferLength
 
 if typeof module != 'undefined' and module.exports # if node.js
   module.exports = Goertzel

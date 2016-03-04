@@ -3,13 +3,21 @@ var DTMF;
 
 DTMF = (function() {
   function DTMF(options) {
-    var key;
+    var key, option;
     if (options == null) {
       options = {};
     }
-    this.peakFilterSensitivity = options.peakFilterSensitivity;
-    this.downsampleRate = options.downsampleRate || 1;
-    this.sampleRate = options.sampleRate / this.downsampleRate;
+    this.options = {
+      downsampleRate: 1,
+      energyThreshold: 0,
+      decibelThreshold: 0,
+      repeatMin: 0,
+      sampleRate: 44100
+    };
+    for (option in options) {
+      this.options[option] = options[option];
+    }
+    this.sampleRate = this.options.sampleRate / this.options.downsampleRate;
     this.frequencyTable = {
       697: {
         1209: '1',
@@ -45,58 +53,33 @@ DTMF = (function() {
       this.highFrequencies.push(parseInt(key));
     }
     this.allFrequencies = this.lowFrequencies.concat(this.highFrequencies);
-    this.threshold = options.threshold || 0;
     this.repeatCounter = 0;
     this.firstPreviousValue = '';
     this.goertzel = new Goertzel({
       frequencies: this.allFrequencies,
-      sampleRate: this.sampleRate,
-      threshold: this.threshold
+      sampleRate: this.sampleRate
     });
-    this.repeatMin = options.repeatMin;
     this.decodeHandlers = [];
+    this.jobs = {
+      beforeProcess: []
+    };
   }
 
-  DTMF.prototype.energyProfileToCharacter = function(register) {
-    var energies, f, highFrequency, highFrequencyEngergy, j, k, len, len1, lowFrequency, lowFrequencyEnergy, ref, ref1;
-    energies = register.energies;
-    highFrequency = 0.0;
-    highFrequencyEngergy = 0.0;
-    ref = this.highFrequencies;
-    for (j = 0, len = ref.length; j < len; j++) {
-      f = ref[j];
-      if (energies[f] > highFrequencyEngergy && energies[f] > this.threshold) {
-        highFrequencyEngergy = energies[f];
-        highFrequency = f;
-      }
-    }
-    lowFrequency = 0.0;
-    lowFrequencyEnergy = 0.0;
-    ref1 = this.lowFrequencies;
-    for (k = 0, len1 = ref1.length; k < len1; k++) {
-      f = ref1[k];
-      if (energies[f] > lowFrequencyEnergy && energies[f] > this.threshold) {
-        lowFrequencyEnergy = energies[f];
-        lowFrequency = f;
-      }
-    }
-    if (this.frequencyTable[lowFrequency] !== void 0) {
-      return this.frequencyTable[lowFrequency][highFrequency] || null;
-    }
-  };
-
   DTMF.prototype.processBuffer = function(buffer) {
-    var badPeaks, energies, f, fType, handler, i, j, k, len, len1, ref, ref1, result, value;
+    var energies, f, fType, handler, i, j, k, len, len1, ref, ref1, result, value;
     value = '';
     result = [];
-    Goertzel.Utilities.eachDownsample(buffer, this.downsampleRate, (function(_this) {
+    this._runJobs('beforeProcess', buffer);
+    if (this.options.decibelThreshold && (Goertzel.Utilities.averageDecibels(buffer) < this.options.decibelThreshold)) {
+      return result;
+    }
+    Goertzel.Utilities.eachDownsample(buffer, this.options.downsampleRate, (function(_this) {
       return function(sample, i, downSampledBufferLength) {
         var windowedSample;
         windowedSample = Goertzel.Utilities.exactBlackman(sample, i, downSampledBufferLength);
         return _this.goertzel.processSample(windowedSample);
       };
     })(this));
-    value = this.energyProfileToCharacter(this.goertzel);
     energies = {
       high: [],
       low: []
@@ -111,13 +94,16 @@ DTMF = (function() {
         i++;
       }
     }
-    badPeaks = Goertzel.Utilities.doublePeakFilter(energies['high'], energies['low'], this.peakFilterSensitivity);
-    if (true) {
-      if (((value === this.firstPreviousValue) || (this.repeatMin === 0)) && value !== void 0) {
-        if (this.repeatMin !== 0) {
+    if ((this.options.filter && this.options.filter({
+      goertzel: this.goertzel,
+      energies: energies
+    })) || !this.options.filter) {
+      value = this._energyProfileToCharacter(this.goertzel);
+      if (((value === this.firstPreviousValue) || (this.options.repeatMin === 0)) && value !== void 0) {
+        if (this.options.repeatMin !== 0) {
           this.repeatCounter += 1;
         }
-        if (this.repeatCounter === this.repeatMin) {
+        if (this.repeatCounter === this.options.repeatMin) {
           result.push(value);
           ref1 = this.decodeHandlers;
           for (k = 0, len1 = ref1.length; k < len1; k++) {
@@ -138,6 +124,59 @@ DTMF = (function() {
     switch (eventName) {
       case "decode":
         return this.decodeHandlers.push(handler);
+    }
+  };
+
+  DTMF.prototype.calibrate = function(multiplier) {
+    var base;
+    if (multiplier == null) {
+      multiplier = 1;
+    }
+    (base = this.jobs).beforeProcess || (base.beforeProcess = []);
+    return this.jobs.beforeProcess.push(function(buffer, dtmf) {
+      return dtmf.options.decibelThreshold = Goertzel.Utilities.averageDecibels(buffer) * multiplier;
+    });
+  };
+
+  DTMF.prototype._energyProfileToCharacter = function(register) {
+    var energies, f, highFrequency, highFrequencyEngergy, j, k, len, len1, lowFrequency, lowFrequencyEnergy, ref, ref1;
+    energies = register.energies;
+    highFrequency = 0.0;
+    highFrequencyEngergy = 0.0;
+    ref = this.highFrequencies;
+    for (j = 0, len = ref.length; j < len; j++) {
+      f = ref[j];
+      if (energies[f] > highFrequencyEngergy && energies[f] > this.options.energyThreshold) {
+        highFrequencyEngergy = energies[f];
+        highFrequency = f;
+      }
+    }
+    lowFrequency = 0.0;
+    lowFrequencyEnergy = 0.0;
+    ref1 = this.lowFrequencies;
+    for (k = 0, len1 = ref1.length; k < len1; k++) {
+      f = ref1[k];
+      if (energies[f] > lowFrequencyEnergy && energies[f] > this.options.energyThreshold) {
+        lowFrequencyEnergy = energies[f];
+        lowFrequency = f;
+      }
+    }
+    if (this.frequencyTable[lowFrequency] !== void 0) {
+      return this.frequencyTable[lowFrequency][highFrequency] || null;
+    }
+  };
+
+  DTMF.prototype._runJobs = function(jobName, buffer) {
+    var i, queueLength, results;
+    if (this.jobs[jobName]) {
+      queueLength = this.jobs[jobName].length;
+      i = 0;
+      results = [];
+      while (i < queueLength) {
+        this.jobs[jobName].pop()(buffer, this);
+        results.push(i++);
+      }
+      return results;
     }
   };
 

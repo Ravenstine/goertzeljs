@@ -6,7 +6,6 @@ Goertzel = (function() {
     if (options == null) {
       options = {};
     }
-    this.threshold = options.threshold || 0;
     this.sampleRate = options.sampleRate;
     this.frequencies = options.frequencies;
     this.refresh();
@@ -188,6 +187,17 @@ Goertzel = (function() {
         i++;
       }
       return intBuffer;
+    },
+    averageDecibels: function(buffer) {
+      var bufferLength, i, sum;
+      sum = 0;
+      bufferLength = buffer.length;
+      i = 0;
+      while (i < bufferLength) {
+        sum += Math.abs(buffer[i]);
+        i++;
+      }
+      return sum / bufferLength;
     }
   };
 
