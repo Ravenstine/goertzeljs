@@ -58,3 +58,22 @@ describe 'DTMF', ->
       dtmf.calibrate()
       dtmf.processBuffer([1,2,3,4,5,4,3,2,1,2,3,4,5,6,7,8,9,8,7,6,5,4,3,2,1])
       expect(dtmf.options.decibelThreshold).toBeGreaterThan(0)
+
+  describe 'decibelThreshold', ->
+    #context 'a low threshold', ->
+    it 'allows a louder signal to pass', ->
+      dtmf = new DTMF
+        sampleRate: 44100
+        repeatMin: 0
+        decibelThreshold: 0
+      result = dtmf.processBuffer Goertzel.Utilities.generateSineBuffer([pairs[0].low, pairs[0].high], 44100, 512)
+      expect(result).not.toBeEmptyArray()
+
+    #context 'a high threshold', ->
+    it 'prevents a signal from passing', ->
+      dtmf = new DTMF
+        sampleRate: 44100
+        repeatMin: 0
+        decibelThreshold: 1000 # insanely high
+      result = dtmf.processBuffer Goertzel.Utilities.generateSineBuffer([pairs[0].low, pairs[0].high], 44100, 512)
+      expect(result).toBeEmptyArray()

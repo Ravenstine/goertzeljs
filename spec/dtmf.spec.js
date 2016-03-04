@@ -109,7 +109,7 @@ describe('DTMF', function() {
       return expect(result).toBeEmptyArray();
     });
   });
-  return describe('#calibrate', function() {
+  describe('#calibrate', function() {
     return it('alters the decibelThreshold', function() {
       var dtmf;
       dtmf = new DTMF({
@@ -121,6 +121,28 @@ describe('DTMF', function() {
       dtmf.calibrate();
       dtmf.processBuffer([1, 2, 3, 4, 5, 4, 3, 2, 1, 2, 3, 4, 5, 6, 7, 8, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
       return expect(dtmf.options.decibelThreshold).toBeGreaterThan(0);
+    });
+  });
+  return describe('decibelThreshold', function() {
+    it('allows a louder signal to pass', function() {
+      var dtmf, result;
+      dtmf = new DTMF({
+        sampleRate: 44100,
+        repeatMin: 0,
+        decibelThreshold: 0
+      });
+      result = dtmf.processBuffer(Goertzel.Utilities.generateSineBuffer([pairs[0].low, pairs[0].high], 44100, 512));
+      return expect(result).not.toBeEmptyArray();
+    });
+    return it('prevents a signal from passing', function() {
+      var dtmf, result;
+      dtmf = new DTMF({
+        sampleRate: 44100,
+        repeatMin: 0,
+        decibelThreshold: 1000
+      });
+      result = dtmf.processBuffer(Goertzel.Utilities.generateSineBuffer([pairs[0].low, pairs[0].high], 44100, 512));
+      return expect(result).toBeEmptyArray();
     });
   });
 });
