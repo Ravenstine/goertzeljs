@@ -50,7 +50,7 @@ class Goertzel
       intSample = floatSample * 32768
       if intSample > 32767
         return 32767
-      else if intSample < -32786
+      else if intSample < -32768
         return -32768
       Math.round intSample
 
@@ -89,8 +89,8 @@ class Goertzel
       secondPeak = energies[1]
       thirdPeak = energies[2]
       trough = energies.reverse()[0]
-      if secondPeak > peak / sensitivity or 
-       thirdPeak > secondPeak / (sensitivity / 2) or 
+      if secondPeak > peak / sensitivity or
+       thirdPeak > secondPeak / (sensitivity / 2) or
        trough > peak / (sensitivity / 2)
         true
       else
