@@ -89,7 +89,7 @@ Goertzel = (function() {
       intSample = floatSample * 32768;
       if (intSample > 32767) {
         return 32767;
-      } else if (intSample < -32786) {
+      } else if (intSample < -32768) {
         return -32768;
       }
       return Math.round(intSample);
