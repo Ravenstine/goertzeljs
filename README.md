@@ -14,7 +14,7 @@ The demo is a DTMF detector that uses a microphone input.  To test the demo, you
 
 Simply play some DTMF tones and the detected characters will appear on the page.
 
-You can run the demo yourself by installing finalhandler and serve-static with NPM(you do have NPM installed, right?):
+You can run the demo yourself by installing finalhandler and serve-static with NPM (you do have NPM installed, right?):
 
 ```npm install```
 
@@ -58,12 +58,13 @@ You would then look at each of the frequency keys under the `goertzel` object's 
 The samplerate should be the sample rate of whatever sample buffers are being given to the goertzel object.  Most of the time this is either 44100 or 48000 hz.  This can be set as high or as low as necessary, though higher samplerates will create more overhead.  Consider downsampling your audio for faster processing time.  See dtmf.js on how samples can be downsampled.
 
 #### Compilation
-Install dependencies with NPM: ```npm install```
+Install dependencies with NPM: ```npm install```  
+Install the build system with NPM: ```npm install -g gulp-cli```
 
-Compile your changes from the CoffeeScript source by running `compile.sh`.  The changes will appear in the **build** directory.
+Compile your changes from the CoffeeScript source by running `gulp build`.  The changes will appear in the **build** directory.
 
 #### Testing
-Tests are written with Jasmine.  Run the tests with ```npm test```.
+Tests are written with Jasmine.  Run the tests with ```gulp test```.
 
 ## DTMF
 I included a DTMF library that depends on goertzel.js for demonstration purposes; while I'll occasionally develop it, it's not officially supported so at the moment I won't include any specs on it.
