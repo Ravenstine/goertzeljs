@@ -152,7 +152,7 @@ Goertzel = (function() {
     },
     generateSineBuffer: function(frequencies, sampleRate, numberOfSamples) {
       var buffer, frequency, i, j, len, val, volumePerSine;
-      buffer = new (Uint8ClampedArray || Array)(numberOfSamples);
+      buffer = new (Float32Array || Array)(numberOfSamples);
       volumePerSine = 1 / frequencies.length;
       i = 0;
       while (i < numberOfSamples) {
@@ -168,7 +168,7 @@ Goertzel = (function() {
     },
     generateWhiteNoiseBuffer: function(sampleRate, numberOfSamples) {
       var buffer, i;
-      buffer = new (Uint8ClampedArray || Array)(numberOfSamples);
+      buffer = new (Float32Array || Array)(numberOfSamples);
       i = 0;
       while (i < numberOfSamples) {
         buffer[i] = Math.random() * 2 - 1;

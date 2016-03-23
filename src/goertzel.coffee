@@ -105,7 +105,7 @@ class Goertzel
     ## useful for testing purposes
 
     generateSineBuffer: (frequencies, sampleRate, numberOfSamples) ->
-      buffer = new (Uint8ClampedArray or Array)(numberOfSamples)
+      buffer = new (Float32Array or Array)(numberOfSamples)
       volumePerSine = 1 / frequencies.length
       i = 0
       while i < numberOfSamples
@@ -117,7 +117,7 @@ class Goertzel
       buffer
 
     generateWhiteNoiseBuffer: (sampleRate, numberOfSamples) ->
-      buffer = new (Uint8ClampedArray or Array)(numberOfSamples)
+      buffer = new (Float32Array or Array)(numberOfSamples)
       i = 0
       while i < numberOfSamples
         buffer[i] = Math.random() * 2 - 1
