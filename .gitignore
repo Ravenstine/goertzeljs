@@ -3,3 +3,4 @@
 /spec/*.js
 .DS_Store
 *.log
+/demo/bundle.js

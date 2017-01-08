@@ -17,7 +17,9 @@ function success(e){
   audioInput.connect(volume)
   var bufferSize = 512
   recorder = context.createScriptProcessor(bufferSize, 1, 1)
-  var outputElement = document.querySelector('#output')
+  var outputElement = document.querySelector('output')
+  var DTMF     = require('dtmf');
+  var Goertzel = require('goertzeljs');
   var dtmf = new DTMF({
     sampleRate: context.sampleRate,
     repeatMin: 6,
@@ -39,5 +41,4 @@ function success(e){
   volume.connect (recorder)
   recorder.connect (context.destination) 
 }
-
 

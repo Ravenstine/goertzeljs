@@ -3,7 +3,8 @@ header {
   word-wrap: break-word;
 }
 
-#output {
+output {
+  display: block;
   width: 800px;
   word-wrap: break-word;
   border-width: 3px;

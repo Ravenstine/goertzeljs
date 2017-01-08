@@ -1,40 +1,29 @@
 # goertzel.js
-A pure JavaScript implementation of the Goertzel algorithm.  The source is written in CoffeeScript.
+A pure JavaScript implementation of the Goertzel algorithm.
 
 The algorithm is used for detecting if specific frequencies are present in a sound(similar to a Discrete Fourier Transform).  It has been most commonly used to detect DTMF(aka Touch-tone) from phone keypads, but it can also be used for a variety of other projects(instrument tuning, decoding FSK, creating spectrograms, etc).
 
 This particular project can be used with no outside libraries, but requires a browser that supports AudioContext and getUserMedia.  Because of this, the demo will only work with recent versions of Chrome and Firefox.
 
+
+## notes on recent changes
+As of Jan 8 2017, I have removed CoffeeScript and have converted all the code to Node.js JavaScript.  This removes a mandatory compilation step, which makes it easier to run on the server side.  Nothing else about the API has changed, but I have bumped the major version number as updating to this version would still totally break anything that uses version >=3.0.0.  Bower is no longer being supported.  [Browserify](https://github.com/substack/node-browserify).
+
+
 ## demo
-[goertzel.herokuapp.com](https://goertzel.herokuapp.com/)
+You can run the demo locally by running `gulp demo`.  This uses BrowserSync and spawns the demo in a new browser tab/window.  Because it reloads automatically on changes, this is also a useful tool for development.
 
-The demo is a DTMF detector that uses a microphone input.  To test the demo, you must have a microphone set up on your computer(and configured in your browser settings) and a source to play DTMF(Audacity or an actual phone).
+The demo is a DTMF detector that uses a microphone input.  To test the demo, you must have a microphone set up on your computer(and configured in your browser settings) and a source to play DTMF.  There are plenty of mobile apps that will play DTMF tones.
 
-> **NOTE:** Chrome(and possibly other browsers) now require the use of HTTPS when the getUserMedia API is used.  If my demo link above exhibits an error, be sure you are using HTTPS and not plain HTTP.  Running the demo locally should work just fine without HTTPS.*
+[An outdated demo](https://goertzel.herokuapp.com/) exists on Heroku.  I don't want to support it anymore because, well, Heroku, but it is still a good demonstration of what this library does.  **NOTE:** This demo only works over HTTPS.
 
-Simply play some DTMF tones and the detected characters will appear on the page.
-
-You can run the demo yourself by installing finalhandler and serve-static with NPM (you do have NPM installed, right?):
-
-```npm install```
-
-Then run the server:
-
-```npm start```
-
-And the page will be accessible at *http://localhost:8000/demo*.
 
 ## installation
 
-You can, of course, include `goertzel.js` as a script tag in your HTML and Goertzel will be there as a global.
-
-If you are using Bower:
-
-`bower install goertzel`
-
-Or if you want to use it in Node.js:
-
 `npm install goertzeljs`
+
+If you want to use Goertzel in the browser, you should use [Browserify](https://github.com/substack/node-browserify).  The demo in the repo provide a good example of how to use Browserify & [Gulp](https://github.com/gulpjs/gulp) to compile Goertzel for the browser.
+
 
 ## usage
 Example:
@@ -57,23 +46,19 @@ You would then look at each of the frequency keys under the `goertzel` object's 
 
 The samplerate should be the sample rate of whatever sample buffers are being given to the goertzel object.  Most of the time this is either 44100 or 48000 hz.  This can be set as high or as low as necessary, though higher samplerates will create more overhead.  Consider downsampling your audio for faster processing time.  See dtmf.js on how samples can be downsampled.
 
-#### Compilation
-Install dependencies with NPM: ```npm install```  
-Install the build system with NPM: ```npm install -g gulp-cli```
-
-Compile your changes from the CoffeeScript source by running `gulp build`.  The changes will appear in the **build** directory.
 
 #### Testing
-Tests are written with Jasmine.  Run the tests with ```gulp test```.
+Tests are written with Jasmine.  Run the tests with ```gulp test```.  Note that the tests are perfect "laboratory" conditions.  Performance between an air gap(i.e. from speaker to microphone) varies drastically.
+
 
 ## DTMF
-I included a DTMF library that depends on goertzel.js for demonstration purposes; while I'll occasionally develop it, it's not officially supported so at the moment I won't include any specs on it.
+As noted above, I included a DTMF library that for demo purposes; while I'll occasionally develop it, it's not officially supported so at the moment I won't include any specs on it.
 
 At this time, frequencies need to occur for at least 0.11 seconds long to be detected consistently with a 512 sample buffer.  Unfortunately, this is more than twice the minimum duration specified by ITU-T(0.043 seconds).
 
-Goertzel.js by itself does not get rid of noise, provided are some helpful utilities for eliminating noise.  Usually I can get rid of 95% of background noise, and unless you are implementing a system similar to a phone system where button-presses mute the microphone, it may occasionally "mistake" a sound pattern for a DTMF tone.
+Goertzel.js by itself does not get rid of noise, provided are some helpful utilities for eliminating noise.  Usually I can get rid of most of background noise, and unless you are implementing something similar to a phone system where button-presses mute the microphone, it may occasionally "mistake" minute noise for a DTMF tone.
 
-The longer the buffer, the easier it is to filter out noise; this also means that the duration of a DTMF tone must be longer.  Implementing a sliding buffer helps too.
+The longer the buffer, the more the algorithm biases against noise.  Implementing a sliding buffer helps too.
 
 Here's a quick how-to on using dtmf.js with goertzel.js.
 
@@ -144,11 +129,11 @@ doublePeakFilter does the same thing as the normal peak filter but with two arra
 ```javascript
 Goertzel.Utilities.generateSineBuffer(frequencies=[], sampleRate, numberOfSamples)
 ```
-generateSineBuffer lets you create an artificial buffer of any number of combined sine waves.  Added for testing purposes, but could have any number of uses.  If you needed to create an oscillator to generate DTMF or other tones without access to a browser's audio API, that's your function.
+generateSineBuffer lets you create an artificial buffer of any number of combined sine waves.  Added for testing purposes, but could have any number of uses.  If you needed to create an oscillator to generate DTMF or other tones without access to a browser's audio API, that's your function.  I actually intend on replacing this with my other library called [Soundrive](https://github.com/Ravenstine/soundrive), which does a better job at creating and mixing a variety of waveforms.
 
 
 ## conclusion
-I hope this project will be useful for anyone who wants to understand the Goertzel algorithm or basic signal processing with the HTML5 Audio API.  
+I hope this project will be useful for anyone who wants to understand the Goertzel algorithm or basic signal processing with the HTML5 Audio API.
 
 Thanks are in order to Texas Instruments for the best explanation of the Goertzel algorithm I could find.
 [http://www.ti.com/lit/an/spra066/spra066.pdf](http://www.ti.com/lit/an/spra066/spra066.pdf)
@@ -159,6 +144,6 @@ Thanks are in order to Texas Instruments for the best explanation of the Goertze
 
 ## license
 **The MIT License (MIT)**
-Copyright (c) 2016 Ben Titcomb
+Copyright (c) 2017 Ben Titcomb
 
 See the `LICENSE` file for more details.
