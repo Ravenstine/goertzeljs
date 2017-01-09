@@ -1,6 +1,5 @@
 /node_modules
 /bower_components
-/spec/*.js
 .DS_Store
 *.log
 /demo/bundle.js
