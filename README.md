@@ -6,10 +6,6 @@ The algorithm is used for detecting if specific frequencies are present in a sou
 This particular project can be used with no outside libraries, but requires a browser that supports AudioContext and getUserMedia.  Because of this, the demo will only work with recent versions of Chrome and Firefox.
 
 
-## notes on recent changes
-As of Jan 8 2017, I have removed CoffeeScript and have converted all the code to Node.js JavaScript.  This removes a mandatory compilation step, which makes it easier to run on the server side.  Nothing else about the API has changed, but I have bumped the major version number as updating to this version would still totally break anything that uses version >=3.0.0.  Bower is no longer being supported.  [Browserify](https://github.com/substack/node-browserify).
-
-
 ## demo
 You can run the demo locally by running `gulp demo`.  This uses BrowserSync and spawns the demo in a new browser tab/window.  Because it reloads automatically on changes, this is also a useful tool for development.
 
