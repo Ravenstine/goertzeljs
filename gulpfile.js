@@ -13,13 +13,6 @@ gulp.task('test', () => {
 		.pipe(jasmine())
 });
 
-gulp.task('benchmark', ['build'], () =>{
-  return gulp.src('./benchmark/*.coffee')
-    .pipe(coffee({bare: true}).on('error', gutil.log))
-    .pipe(browserify())
-    .pipe(gulp.dest('./benchmark/'));
-})
-
 gulp.task('demo', ['build:demo'], () => {
   browserSync.init({
     server: "./demo"
