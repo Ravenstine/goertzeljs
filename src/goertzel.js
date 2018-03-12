@@ -71,8 +71,7 @@ Goertzel.Utilities = {
 
   downsampleBuffer(buffer, downsampleRate, mapSample) {
     let bufferLength = buffer.length,
-    // Prefer Uint8ClampedArray for performance
-        downsampledBuffer = new (Uint8ClampedArray || Array)(bufferLength / downsampleRate),
+        downsampledBuffer = new Uint8ClampedArray(bufferLength / downsampleRate),
         i = 0;
     while (i < bufferLength) {
       let sample = buffer[i];
@@ -135,7 +134,7 @@ Goertzel.Utilities = {
   //# useful for testing purposes
 
   generateSineBuffer(frequencies, sampleRate, numberOfSamples) {
-    let buffer        = new (Float32Array || Array)(numberOfSamples),
+    let buffer        = new Float32Array(numberOfSamples),
         volumePerSine = 1 / frequencies.length,
         i             = 0;
     while (i < numberOfSamples) {
@@ -150,7 +149,7 @@ Goertzel.Utilities = {
   },
 
   generateWhiteNoiseBuffer(sampleRate, numberOfSamples) {
-    let buffer = new (Float32Array || Array)(numberOfSamples),
+    let buffer = new Float32Array(numberOfSamples),
         i      = 0;
     while (i < numberOfSamples) {
       buffer[i] = (Math.random() * 2) - 1;
@@ -161,7 +160,7 @@ Goertzel.Utilities = {
 
   floatBufferToInt(floatBuffer) {
     let floatBufferLength = floatBuffer.length,
-        intBuffer         = new (Uint8ClampedArray || Array)(floatBufferLength),
+        intBuffer         = new Uint8ClampedArray(floatBufferLength),
         i                 = 0;
     while (i < floatBufferLength) {
       intBuffer[i] = Goertzel.Utilities.floatToIntSample(floatBuffer[i]);
