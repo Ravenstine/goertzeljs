@@ -18,17 +18,17 @@ The demo is a DTMF detector that uses a microphone input.  To test the demo, you
 
 `npm install goertzeljs`
 
-If you want to use Goertzel in the browser, you should use [Browserify](https://github.com/substack/node-browserify).  The demo in the repo provide a good example of how to use Browserify & [Gulp](https://github.com/gulpjs/gulp) to compile Goertzel for the browser.
+If you want to use Goertzel in the browser, you should use a tool like [Browserify](https://github.com/substack/node-browserify) to include Node modules into your browser application.  The demo in the repo provide a good example of how to use Browserify & [Gulp](https://github.com/gulpjs/gulp) to compile Goertzel for the browser.
 
 
 ## usage
 Example:
 ```javascript
-  var buffer = [...]; // array of int samples
+  let buffer = [...]; // array of int samples
 
-  var targetFrequencies = [697,770,852,941,1209,1336,1477,1633];
+  const targetFrequencies = [697,770,852,941,1209,1336,1477,1633];
 
-  var goertzel = new Goertzel({
+  let goertzel = new Goertzel({
     frequencies: targetFrequencies,
     sampleRate: 8000
   });
@@ -140,6 +140,6 @@ Thanks are in order to Texas Instruments for the best explanation of the Goertze
 
 ## license
 **The MIT License (MIT)**
-Copyright (c) 2017 Ben Titcomb
+Copyright (c) 2018 Ben Titcomb
 
 See the `LICENSE` file for more details.
