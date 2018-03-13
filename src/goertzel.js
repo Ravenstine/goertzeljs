@@ -20,7 +20,7 @@ class Goertzel {
       this[attr] = {};
       i++;
     }
-    return Array.from(this.frequencies).map(frequency => {
+    return this.frequencies.map(frequency => {
       let result = [],
           len    = attrs.length,
           i      = 0;
