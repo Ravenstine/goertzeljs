@@ -5,27 +5,42 @@ class Goertzel {
   constructor(options) {
     if (options == null) { options = {}; }
     this.sampleRate     = options.sampleRate;
-    this.frequencies    = options.frequencies;
+    this.frequencies    = options.frequencies || [];
+    this._initializeCoefficients(this.frequencies);
     this.refresh();
   }
 
   refresh() {
     //# Re-initializes Goertzel when we are taking in a new buffer
-    for (var attr of ['firstPrevious', 'secondPrevious', 'totalPower', 'filterLength', 'energies']) { this[attr] = {}; }
-    if (!this.coefficient) { this._initializeCoefficients(this.frequencies); }
-    return Array.from(this.frequencies).map((frequency) =>
-      (() => {
-        let result = [];
-        for (attr of ['firstPrevious', 'secondPrevious', 'totalPower', 'filterLength', 'energies']) {           result.push(this[attr][frequency] = 0.0);
-        }
-        return result;
-      })());
+    let attrs = ['firstPrevious', 'secondPrevious', 'totalPower', 'filterLength', 'energies'],
+        len   = attrs.length,
+        i     = 0;
+    while(i<len){
+      let attr = attrs[i];
+      this[attr] = {};
+      i++;
+    }
+    return Array.from(this.frequencies).map(frequency => {
+      let result = [],
+          len    = attrs.length,
+          i      = 0;
+      while(i<len){
+        let attr = attrs[i];
+        result.push(this[attr][frequency] = 0.0)
+        i++;
+      }
+      return result;
+    });
   }
 
   processSample(sample) {
     this.currentSample = sample;
-    for (let frequency of Array.from(this.frequencies)) {
+    let len = this.frequencies.length,
+        i   = 0;
+    while(i < len){
+      let frequency = this.frequencies[i];
       this._getEnergyOfFrequency(sample, frequency);
+      i++;
     }
     return this; // returning self would be most useful here
   }
@@ -50,11 +65,16 @@ class Goertzel {
   }
 
   _initializeCoefficients(frequencies) {
-    let normalizedFrequency;
+    let normalizedFrequency,
+        len = frequencies.length,
+        i   = 0;
     this.coefficient = {};
-    return Array.from(frequencies).map((frequency) =>
-      (normalizedFrequency = frequency / this.sampleRate,
-      this.coefficient[frequency] = 2.0 * Math.cos(2.0 * Math.PI * normalizedFrequency)));
+    while(i<len){
+      let frequency = frequencies[i];
+      normalizedFrequency = frequency / this.sampleRate;
+      this.coefficient[frequency] = 2.0 * Math.cos(2.0 * Math.PI * normalizedFrequency);
+      i++;
+    }
   }
 }
 
