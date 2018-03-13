@@ -3,7 +3,7 @@
 class Goertzel {
 
   constructor(options) {
-    if (options == null) { options = {}; }
+    if (options == null) options = {};
     this.sampleRate     = options.sampleRate;
     this.frequencies    = options.frequencies || [];
     this._initializeCoefficients(this.frequencies);
@@ -42,7 +42,7 @@ class Goertzel {
       this._getEnergyOfFrequency(sample, frequency);
       i++;
     }
-    return this; // returning self would be most useful here
+    return this;
   }
 
   // private
@@ -58,7 +58,7 @@ class Goertzel {
     let power = ((f2 * f2) + (f1 * f1)) - (coefficient * f1 * f2),
         totalPower = this.totalPower[frequency] += sample * sample;
     if (totalPower === 0) { this.totalPower[frequency] = 1; }
-    this.energies[frequency] = power / totalPower / this.filterLength[frequency];
+    this.energies[frequency]       = power / totalPower / this.filterLength[frequency];
     this.firstPrevious[frequency]  = f1;  //
     this.secondPrevious[frequency] = f2;  // This is just a means to reduce the amount of property calling.
     return this.energies[frequency];
@@ -108,16 +108,14 @@ Goertzel.Utilities = {
   eachDownsample(buffer, downSampleRate, fn) {
     let i = 0,
         bufferLength            = buffer.length,
-        downSampledBufferLength = bufferLength / downSampleRate;
-    return (() => {
-      let result = [];
-      while (i < bufferLength) {
-        var sample = buffer[i];
-        if(fn) fn(sample, i, downSampledBufferLength);
-        result.push(i += downSampleRate);
-      }
-      return result;
-    })();
+        downSampledBufferLength = bufferLength / downSampleRate,
+        result                  = [];
+    while (i < bufferLength) {
+      var sample = buffer[i];
+      if(fn) fn(sample, i, downSampledBufferLength);
+      result.push(i += downSampleRate);
+    }
+    return result;
   },
 
   hamming(sample, sampleIndex, bufferSize) {
@@ -134,21 +132,13 @@ Goertzel.Utilities = {
         secondPeak = energies[1],
         thirdPeak  = energies[2],
         trough     = energies.reverse()[0];
-    if ((secondPeak > (peak / sensitivity)) ||
-     (thirdPeak > (secondPeak / (sensitivity / 2))) ||
-     (trough > (peak / (sensitivity / 2)))) {
-      return true;
-    } else {
-      return false;
-    }
+    return (secondPeak > (peak / sensitivity)) ||
+           (thirdPeak > (secondPeak / (sensitivity / 2))) ||
+           (trough > (peak / (sensitivity / 2)));
   },
 
   doublePeakFilter(energies1, energies2, sensitivity) {
-    if ((this.peakFilter(energies1, sensitivity) === true) || (this.peakFilter(energies2, sensitivity) === true)) {
-      return true;
-    } else {
-      return false;
-    }
+    return this.peakFilter(energies1, sensitivity) || this.peakFilter(energies2, sensitivity);
   },
 
   //# useful for testing purposes
