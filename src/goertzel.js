@@ -80,13 +80,13 @@ class Goertzel {
 
 Goertzel.Utilities = {
   floatToIntSample(floatSample) {
-    let intSample = floatSample * 32768;
+    let intSample = ((floatSample * 32768) + 0.5) | 0;
     if (intSample > 32767) {
       return 32767;
     } else if (intSample < -32768) {
       return -32768;
     }
-    return Math.round(intSample);
+    return intSample;
   },
 
   downsampleBuffer(buffer, downsampleRate, mapSample) {
