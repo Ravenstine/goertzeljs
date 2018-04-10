@@ -1,7 +1,7 @@
 'use strict';
 
-let DTMF     = require('../src/dtmf');
-let Goertzel = require('../src/goertzel');
+const DTMF     = require('../lib/dtmf');
+const Goertzel = require('../index');
 
 require('jasmine-expect');
 

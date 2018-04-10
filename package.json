@@ -2,7 +2,7 @@
   "name": "goertzeljs",
   "version": "4.1.0",
   "description": "A pure JavaScript implementation of the Goertzel algorithm.",
-  "main": "build/goertzel.js",
+  "main": "index.js",
   "scripts": {
     "test": "gulp test",
     "start": "gulp demo",
