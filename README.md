@@ -36,6 +36,22 @@ You would then look at each of the frequency keys under the `goertzel` object's 
 
 The samplerate should be the sample rate of whatever sample buffers are being given to the goertzel object.  Most of the time this is either 44100 or 48000 hz.  This can be set as high or as low as necessary, though higher samplerates will create more overhead.  Consider downsampling your audio for faster processing time.  See dtmf.js on how samples can be downsampled.
 
+It is now possible to calculate the phase of a given set of samples.  Because this is a less common use of Goertzel, this feature is turned off by default.  To enable it, set `options.getPhase` to true;
+
+```javascript
+  const goertzel = new Goertzel({
+    frequencies: [697,770,852,941],
+    getPhase: true
+  });
+
+  buffer.forEach(function(sample){
+    goertzel.processSample(sample);
+  });
+
+  goertzel.phases;
+
+  // { 697: [Number], 770: [Number], 852: [Number], 941: [Number],  }
+```
 
 #### Testing
 Tests are written with Mocha.  To perform the tests, simply run `npm run test`.

@@ -2,19 +2,21 @@
 
 const GOERTZEL_ATTRIBUTES = ['firstPrevious', 'secondPrevious', 'totalPower', 'filterLength', 'energies', 'phases'],
       GOERTZEL_ATTRIBUTES_LENGTH = GOERTZEL_ATTRIBUTES.length,
-      { cos, PI } = Math;
+      { atan2, cos, sin, PI } = Math;
 /**
  * A pure JavaScript implementation of the Goertzel algorithm, a means of efficient DFT signal processing.
- * @param {object} [options={}]
- * @param {array}  options.frequencies       - The frequencies to be processed.
- * @param {number=44100} options.sampleRate  - The sample rate of the samples to be processed.  Defaults to 44100.
+ * @param {object}        options
+ * @param {array}         options.frequencies - The frequencies to be processed.
+ * @param {number=44100}  options.sampleRate  - The sample rate of the samples to be processed.  Defaults to 44100.
+ * @param {boolean=false} options.getPhase    - Calculates the current phase of each frequency.  Disabled by default.
  */
 class Goertzel {
 
   constructor(options={}) {
+    this.options        = options;
     this.sampleRate     = options.sampleRate  || 44100;
     this.frequencies    = options.frequencies || [];
-    this._initializeCoefficients(this.frequencies);
+    this._initializeConstants(this.frequencies);
     this.refresh();
   }
   /**
@@ -72,20 +74,33 @@ class Goertzel {
           totalPower = this.totalPower[frequency] += sample * sample;
     if (totalPower === 0) this.totalPower[frequency] = 1;
     this.energies[frequency]       = power / totalPower / this.filterLength[frequency];
+    if(this.options.getPhase) {
+      let real      = (f1 - f2 * this.cosine[frequency]),
+          imaginary = (f2 * this.sine[frequency]);
+      this.phases[frequency] = atan2(imaginary, real);
+    }
     this.firstPrevious[frequency]  = f1;
     this.secondPrevious[frequency] = f2;
   }
 
-  _initializeCoefficients(frequencies) {
+  _initializeConstants(frequencies) {
     const len = frequencies.length;
     let frequency,
         normalizedFrequency,
+        omega,
+        cosine,
         i = 0;
+    this.sine        = {},
+    this.cosine      = {},
     this.coefficient = {};
     while(i<len){
       frequency = frequencies[i];
       normalizedFrequency = frequency / this.sampleRate;
-      this.coefficient[frequency] = 2.0 * cos(2.0 * PI * normalizedFrequency);
+      omega  = 2.0 * PI * normalizedFrequency;
+      cosine = cos(omega);
+      this.sine[frequency]        = sin(omega);
+      this.cosine[frequency]      = cosine;
+      this.coefficient[frequency] = 2.0 * cosine;
       i++;
     }
   }
