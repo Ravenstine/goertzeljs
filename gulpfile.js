@@ -5,13 +5,7 @@ const gulp         = require('gulp'),
       source       = require('vinyl-source-stream'),
       babel        = require('babelify'),
       gutil        = require('gulp-util'),
-      jasmine      = require('gulp-jasmine'),
       browserSync  = require('browser-sync').create();
-
-gulp.task('test', () => {
-  return gulp.src('./spec/*.js')
-		.pipe(jasmine())
-});
 
 gulp.task('demo', ['build:demo'], () => {
   browserSync.init({
@@ -24,8 +18,8 @@ gulp.task('demo', ['build:demo'], () => {
 
 gulp.task('build:demo', () => {
   return browserify({debug: true, extensions: ['.js']})
-    .require('./src/dtmf', {expose: 'dtmf'})
-    .require('./src/goertzel', {expose: 'goertzeljs'})
+    .require('./lib/dtmf', {expose: 'dtmf'})
+    .require('./index',    {expose: 'goertzeljs'})
     .transform('babelify', {presets: ['es2015']})
     .bundle()
     .pipe(source('bundle.js'))
@@ -33,4 +27,5 @@ gulp.task('build:demo', () => {
     .pipe(browserSync.stream());
 });
 
-gulp.task('default', ['test']);
+gulp.task('default', ['demo']);
+

@@ -1,22 +1,19 @@
-# goertzel.js
+Goertzel.js
+===========
 A pure JavaScript implementation of the Goertzel algorithm.
 
-The algorithm is used for detecting if specific frequencies are present in a sound(similar to a Discrete Fourier Transform).  It has been most commonly used to detect DTMF(aka Touch-tone) from phone keypads, but it can also be used for a variety of other projects(instrument tuning, decoding FSK, creating spectrograms, etc).
+The algorithm is used for detecting if specific frequencies are present audio.  It has been most commonly used to detect DTMF(aka Touch-tone) in telephony, but it can also be used for a variety of other projects(instrument tuning, decoding FSK, creating spectrograms, etc).
 
-This particular project can be used with no outside libraries, but requires a browser that supports AudioContext and getUserMedia.  Because of this, the demo will only work with recent versions of Chrome and Firefox.
-
+I originally wrote it for the purposes of learning, but it's very performant and can be useful in Node.js and browsers that do not supply [AnalyserNode](https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode).
 
 ## demo
-You can run the demo locally by running `gulp demo`.  This uses BrowserSync and spawns the demo in a new browser tab/window.  Because it reloads automatically on changes, this is also a useful tool for development.
+The demo is a DTMF detector that uses microphone input.  It is *very* unsophisticated, so it will sometimes pick up erroneous characters.  You will need to use a separate app(or hey, an actual phone) to produce DTMF tones.
 
-The demo is a DTMF detector that uses a microphone input.  To test the demo, you must have a microphone set up on your computer(and configured in your browser settings) and a source to play DTMF.  There are plenty of mobile apps that will play DTMF tones.
-
-[An outdated demo](https://goertzel.herokuapp.com/) exists on Heroku.  I don't want to support it anymore because, well, Heroku, but it is still a good demonstration of what this library does.  **NOTE:** This demo only works over HTTPS.
-
+You can run the demo locally by running `npm run demo`.  This uses BrowserSync and spawns the demo in a new browser tab/window.  Because it reloads automatically on changes, this is also a useful tool for development.
 
 ## installation
 
-`npm install goertzeljs`
+`npm install --save goertzeljs`
 
 If you want to use Goertzel in the browser, you should use a tool like [Browserify](https://github.com/substack/node-browserify) to include Node modules into your browser application.  The demo in the repo provide a good example of how to use Browserify & [Gulp](https://github.com/gulpjs/gulp) to compile Goertzel for the browser.
 
@@ -24,13 +21,10 @@ If you want to use Goertzel in the browser, you should use a tool like [Browseri
 ## usage
 Example:
 ```javascript
-  let buffer = [...]; // array of int samples
+  const buffer = [...]; // array of int samples
 
-  const targetFrequencies = [697,770,852,941,1209,1336,1477,1633];
-
-  let goertzel = new Goertzel({
-    frequencies: targetFrequencies,
-    sampleRate: 8000
+  const goertzel = new Goertzel({
+    frequencies: [697,770,852,941,1209,1336,1477,1633]
   });
 
   buffer.forEach(function(sample){
@@ -44,7 +38,7 @@ The samplerate should be the sample rate of whatever sample buffers are being gi
 
 
 #### Testing
-Tests are written with Jasmine.  Run the tests with ```gulp test```.  Note that the tests are perfect "laboratory" conditions.  Performance between an air gap(i.e. from speaker to microphone) varies drastically.
+Tests are written with Mocha.  To perform the tests, simply run `npm run test`.
 
 
 ## DTMF
@@ -89,43 +83,6 @@ dtmf.on("decode", function(value){ // do something // });
 ```
 
 The value is whatever character that was detected.
-
-## extra features
-I included some useful utility methods with goertzel.js that I found useful with DTMF detection that could also be used for other forms of detection.
-
-
-To convert a float sample to an integer sample, pass it to floatToIntSample and you will be returned an integer sample.
-```javascript
-Goertzel.Utilities.floatToIntSample(floatSample)
-```
-
-For applying the Hamming window function to a sample, use #hamming:
-```javascript
-Goertzel.Utilities.hamming(sample,sampleIndex,bufferSize)
-```
-
-You can also use #exactBlackman to use the Exact Blackman window function.
-
-Practical use of DTMF requires significant noise reduction.  If you have control over the signal, it would be best to mute audio that can interfere; phone systems mute microphone input to accurately receive DTMF.  On the other hand, you may want to decode frequencies from the same input where other sounds/noise may be received so you will need to filter the noise.  Because other methods I tried did not seem to work very well, I came up with my own noise filtration by finding the peak energy in a given spectrum of frequencies, then finding the second highest energy and throwing out the sample if secondHighestEnergy >= peakEnergy/peakFilterSensitivity.  
-
-```javascript
-Goertzel.Utilities.peakFilter(energies,sensitivity)
-```
-
-Energies needs to be a simple array of energies, and sensitivity needs to be an integer from 1 to infinity.
-
-peakFilter will return true if the amount of surrounding energy is too great, the peak isn't high enough, or there are multiple peaks.  Samples that pass return false.  I've found this to be a very effective means of reducing errors, and a peakFilterSensitivity value of 20 seems to work well.  The more specific you want your frequency detection to be, the higher the sensitivity you may need.
-
-```javascript
-Goertzel.Utilities.doublePeakFilter(energies1,energies2,sensitivity)
-```
-
-doublePeakFilter does the same thing as the normal peak filter but with two arrays at the same time.  
-
-```javascript
-Goertzel.Utilities.generateSineBuffer(frequencies=[], sampleRate, numberOfSamples)
-```
-generateSineBuffer lets you create an artificial buffer of any number of combined sine waves.  Added for testing purposes, but could have any number of uses.  If you needed to create an oscillator to generate DTMF or other tones without access to a browser's audio API, that's your function.  I actually intend on replacing this with my other library called [Soundrive](https://github.com/Ravenstine/soundrive), which does a better job at creating and mixing a variety of waveforms.
 
 
 ## conclusion
