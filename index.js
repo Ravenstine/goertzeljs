@@ -8,7 +8,7 @@ const GOERTZEL_ATTRIBUTES = ['firstPrevious', 'secondPrevious', 'totalPower', 'f
  * @param {object}        options
  * @param {array}         options.frequencies - The frequencies to be processed.
  * @param {number=44100}  options.sampleRate  - The sample rate of the samples to be processed.  Defaults to 44100.
- * @param {boolean=false} options.getPhase    - Calculates the current phase of each frequency.  Disabled by default.
+ * @param {boolean=false} options.getPhase    - Calculates the current phase angle of each frequency.  Disabled by default.
  */
 class Goertzel {
 
