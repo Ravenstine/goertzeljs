@@ -3,8 +3,6 @@
 const gulp         = require('gulp'),
       browserify   = require('browserify'),
       source       = require('vinyl-source-stream'),
-      babel        = require('babelify'),
-      gutil        = require('gulp-util'),
       browserSync  = require('browser-sync').create();
 
 gulp.task('demo', ['build:demo'], () => {

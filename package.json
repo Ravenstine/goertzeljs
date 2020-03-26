@@ -1,6 +1,6 @@
 {
   "name": "goertzeljs",
-  "version": "4.2.1",
+  "version": "4.2.2",
   "description": "A pure JavaScript implementation of the Goertzel algorithm.",
   "main": "index.js",
   "scripts": {
@@ -26,7 +26,7 @@
   },
   "devDependencies": {
     "babel-preset-es2015": "^6.18.0",
-    "babelify": "^7.3.0",
+    "babelify": "^10.0.0",
     "benchmark": "^2.1.0",
     "browser-sync": "^2.26.7",
     "browserify": "^13.3.0",
