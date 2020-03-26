@@ -106,6 +106,36 @@ describe('DTMF', function() {
       result = dtmf.processBuffer(Goertzel.Utilities.generateWhiteNoiseBuffer(44100, 512));
       assert.isEmpty(result);
     });
+
+    it('should call decode handlers', function(done) {
+      let buffer, dtmf, dualTone, pair, vals;
+      dtmf = new DTMF({
+        sampleRate: 44100,
+        repeatMin: 0
+      });
+
+      let count = 0;
+
+      dtmf.on('decode', function(digit) {
+        count++;
+		if(count == 2) done();
+      });
+
+      dtmf.on('decode', function(digit) {
+        count++;
+		if(count == 2) done();
+      });
+
+      setTimeout(function() {
+        if(count != 2) done('not all decode handlers were called');
+      }, 1000)
+
+      pair = pairs[0];
+      dualTone = Goertzel.Utilities.generateSineBuffer([pair.low, pair.high], 44100, 512);
+      buffer = Goertzel.Utilities.floatBufferToInt(dualTone);
+      vals = dtmf.processBuffer(buffer);
+      assert.include(vals, pair.char);
+    });
   });
 
 
