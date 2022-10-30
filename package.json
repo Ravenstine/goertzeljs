@@ -1,6 +1,6 @@
 {
   "name": "goertzeljs",
-  "version": "4.2.2",
+  "version": "4.2.3",
   "description": "A pure JavaScript implementation of the Goertzel algorithm.",
   "main": "index.js",
   "scripts": {
